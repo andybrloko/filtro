@@ -12,32 +12,52 @@
       margin: 0;
     }
 
-    h1, h3 {
+    h1 {
       text-align: center;
+      margin: 20px 0 10px;
     }
 
-    .secao-filtros {
-      margin: 20px;
-    }
-
-    .secao-filtros h3 {
-      margin-bottom: 10px;
-    }
-
-    .filtros {
+    .barra {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
       justify-content: center;
+      margin: 20px;
     }
 
-    .filtro {
+    .bloco {
       background: #fff;
-      padding: 8px 12px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .bloco h3 {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    #filtros, #anos {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    label {
       cursor: pointer;
-      user-select: none;
+      font-size: 14px;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 6px;
+    }
+
+    #pesquisa {
+      width: 240px;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
 
     #container {
@@ -57,151 +77,155 @@
     .questao img {
       max-width: 100%;
       border-radius: 8px;
+      margin: 10px 0;
     }
   </style>
 </head>
+
 <body>
 
 <h1>Questões de Matemática – ENEM</h1>
 
-<div class="secao-filtros">
-  <h3>Filtrar por conteúdo</h3>
-  <div id="filtrosConteudo" class="filtros"></div>
-</div>
+<div class="barra">
 
-<div class="secao-filtros">
-  <h3>Filtrar por ano</h3>
-  <div id="filtrosAno" class="filtros"></div>
-</div>
+  <div class="bloco">
+    <h3>Pesquisar</h3>
+    <input
+      type="text"
+      id="pesquisa"
+      placeholder="Ex: 2018 45 ou 2012"
+    >
+  </div>
 
-<hr>
+  <div class="bloco">
+    <h3>Anos</h3>
+    <div id="anos"></div>
+  </div>
+
+  <div class="bloco">
+    <h3>Conteúdos</h3>
+    <div id="filtros"></div>
+  </div>
+
+</div>
 
 <div id="container"></div>
 
 <script>
 let questoes = [];
-
-// =======================
-// CATEGORIA PRINCIPAL
-// =======================
-function categoriaPrincipal(texto) {
-  texto = texto.toLowerCase();
-
-  if (texto.includes("estatística")) return "Estatística";
-  if (texto.includes("função afim") || texto.includes("1º grau")) return "Função Afim";
-  if (texto.includes("função quadrática") || texto.includes("2º grau")) return "Função Quadrática";
-  if (texto.includes("trigonometr")) return "Trigonometria";
-  if (texto.includes("geometria analítica")) return "Geometria Analítica";
-  if (texto.includes("geometria espacial")) return "Geometria Espacial";
-  if (texto.includes("probabilidade") || texto.includes("combinatória")) return "Probabilidade";
-  if (texto.includes("escala") || texto.includes("proporção")) return "Escala e Proporção";
-  if (texto.includes("exponencial")) return "Função Exponencial";
-  if (texto.includes("logarítmica")) return "Função Logarítmica";
-
-  return "Outros";
-}
+let filtrosConteudo = [];
+let filtrosAno = [];
+let termoPesquisa = "";
 
 fetch("questoes.csv")
   .then(r => r.text())
   .then(csv => {
     const linhas = csv.trim().split("\n").slice(1);
-
-    const filtrosConteudo = document.getElementById("filtrosConteudo");
-    const filtrosAno = document.getElementById("filtrosAno");
-    const container = document.getElementById("container");
-
-    const categorias = new Set();
-    const anos = new Set();
+    const conteudosSet = new Set();
+    const anosSet = new Set();
 
     linhas.forEach(linha => {
       const [ano, num, conteudos, gabarito] = linha.split(";");
       if (!ano || !num) return;
 
-      const categoria = categoriaPrincipal(conteudos);
+      const listaConteudos = conteudos.split("|").map(c => c.trim());
 
       questoes.push({
         ano,
         num,
-        conteudos,
-        gabarito,
-        categoria
+        conteudos: listaConteudos,
+        gabarito
       });
 
-      categorias.add(categoria);
-      anos.add(ano);
+      listaConteudos.forEach(c => conteudosSet.add(c));
+      anosSet.add(ano);
     });
 
-    // =======================
-    // FILTROS DE CONTEÚDO
-    // =======================
-    [...categorias].sort().forEach(cat => {
-      filtrosConteudo.appendChild(criarCheckbox(cat, aplicarFiltro));
-    });
-
-    // =======================
-    // FILTROS DE ANO
-    // =======================
-    [...anos].sort((a, b) => b - a).forEach(ano => {
-      filtrosAno.appendChild(criarCheckbox(ano, aplicarFiltro));
-    });
-
+    criarFiltros(conteudosSet);
+    criarFiltrosAno(anosSet);
     renderizar(questoes);
-
-    function criarCheckbox(valor, onChange) {
-      const label = document.createElement("label");
-      label.className = "filtro";
-
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.value = valor;
-      checkbox.addEventListener("change", onChange);
-
-      label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(" " + valor));
-
-      return label;
-    }
-
-    function aplicarFiltro() {
-      const conteudosSelecionados = [...document.querySelectorAll("#filtrosConteudo input:checked")]
-        .map(cb => cb.value);
-
-      const anosSelecionados = [...document.querySelectorAll("#filtrosAno input:checked")]
-        .map(cb => cb.value);
-
-      const filtradas = questoes.filter(q => {
-        const okConteudo =
-          conteudosSelecionados.length === 0 ||
-          conteudosSelecionados.includes(q.categoria);
-
-        const okAno =
-          anosSelecionados.length === 0 ||
-          anosSelecionados.includes(q.ano);
-
-        return okConteudo && okAno;
-      });
-
-      renderizar(filtradas);
-    }
-
-    function renderizar(lista) {
-      container.innerHTML = "";
-
-      lista.forEach(q => {
-        const div = document.createElement("div");
-        div.className = "questao";
-
-        div.innerHTML = `
-          <h3>${q.ano} – Questão ${q.num}</h3>
-          <img src="imagens/${q.ano}_q${q.num}.png">
-          <p><strong>Categoria:</strong> ${q.categoria}</p>
-          <p><strong>Gabarito:</strong> ${q.gabarito}</p>
-        `;
-
-        container.appendChild(div);
-      });
-    }
   });
+
+function criarFiltros(set) {
+  const div = document.getElementById("filtros");
+
+  [...set].sort().forEach(c => {
+    const label = document.createElement("label");
+    label.innerHTML = `<input type="checkbox" value="${c}"> ${c}`;
+    label.querySelector("input").addEventListener("change", aplicarFiltros);
+    div.appendChild(label);
+  });
+}
+
+function criarFiltrosAno(set) {
+  const div = document.getElementById("anos");
+
+  [...set].sort().forEach(a => {
+    const label = document.createElement("label");
+    label.innerHTML = `<input type="checkbox" value="${a}"> ${a}`;
+    label.querySelector("input").addEventListener("change", aplicarFiltros);
+    div.appendChild(label);
+  });
+}
+
+document.getElementById("pesquisa").addEventListener("input", e => {
+  termoPesquisa = e.target.value.toLowerCase();
+  aplicarFiltros();
+});
+
+function aplicarFiltros() {
+  filtrosConteudo = [...document.querySelectorAll("#filtros input:checked")]
+    .map(i => i.value);
+
+  filtrosAno = [...document.querySelectorAll("#anos input:checked")]
+    .map(i => i.value);
+
+  let filtradas = questoes;
+
+  if (filtrosConteudo.length > 0) {
+    filtradas = filtradas.filter(q =>
+      filtrosConteudo.some(f => q.conteudos.includes(f))
+    );
+  }
+
+  if (filtrosAno.length > 0) {
+    filtradas = filtradas.filter(q =>
+      filtrosAno.includes(q.ano)
+    );
+  }
+
+  if (termoPesquisa) {
+    filtradas = filtradas.filter(q =>
+      `${q.ano} ${q.num}`.toLowerCase().includes(termoPesquisa)
+    );
+  }
+
+  renderizar(filtradas);
+}
+
+function renderizar(lista) {
+  const container = document.getElementById("container");
+  container.innerHTML = "";
+
+  if (lista.length === 0) {
+    container.innerHTML = "<p style='text-align:center'>Nada encontrado.</p>";
+    return;
+  }
+
+  lista.forEach(q => {
+    const div = document.createElement("div");
+    div.className = "questao";
+
+    div.innerHTML = `
+      <h3>${q.ano} – Questão ${q.num}</h3>
+      <img src="imagens/${q.ano}_q${q.num}.png" alt="Questão ${q.num}">
+      <p><strong>Conteúdos:</strong> ${q.conteudos.join(", ")}</p>
+      <p><strong>Gabarito:</strong> ${q.gabarito}</p>
+    `;
+
+    container.appendChild(div);
+  });
+}
 </script>
 
 </body>
