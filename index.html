@@ -208,12 +208,11 @@ fetch("questoes.csv")
         const div = document.createElement("div");
         div.className = "questao";
 
-        const penege = png
-        const peenege = q.penege.toLowerCase();
-
+      
+        PNG = png
         div.innerHTML = `
           <h3>${q.ano} – Questão ${q.num}</h3>
-          <img src="imagens/${q.ano}_q${q.num}.peenege">
+          <img src="imagens/${q.ano}_q${q.num}.png">
           <p><strong>Categoria:</strong> ${q.categoria}</p>
           <p><strong>Gabarito:</strong> ${q.gabarito}</p>
         `;
@@ -227,5 +226,6 @@ fetch("questoes.csv")
 
 </body>
 </html>
+
 
 
