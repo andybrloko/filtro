@@ -18,11 +18,13 @@
         select, button {
             padding: 10px;
             font-size: 16px;
-            margin-right: 10px;
+            margin: 5px 0;
+            width: 100%;
         }
 
         button {
             cursor: pointer;
+            margin-top: 10px;
         }
 
         #resultado {
@@ -31,60 +33,98 @@
             background: #1e1e1e;
             border-radius: 6px;
         }
+
+        .questao {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Filtro de Questões</h1>
+<h1>Filtro de Questões</h1>
 
-    <label for="tipo">Tipo de questão:</label>
-    <select id="tipo">
-        <option value="">Selecione</option>
-        <option value="1">Razão</option>
-        <option value="2">Proporção</option>
-        <option value="3">Volume</option>
-    </select>
+<label for="conteudos">Conteúdos (Ctrl para múltiplos):</label>
+<select id="conteudos" multiple size="6">
+    <option value="razão">Razão</option>
+    <option value="proporção">Proporção</option>
+    <option value="porcentagem">Porcentagem</option>
+    <option value="estatística">Estatística</option>
+    <option value="geometria">Geometria</option>
+    <option value="função">Função</option>
+</select>
 
-    <button onclick="filtrar()">Filtrar</button>
+<button onclick="filtrar()">Filtrar</button>
 
-    <div id="resultado"></div>
+<div id="resultado"></div>
 
-    <script>
-        // equivalente ao seu dicionário Python
-        const questoes = {
-            q1: "1",
-            q2: "2",
-            q3: "2"
-        };
+<script>
+const questoes = [
+    {
+        ano: 2009,
+        numero: 136,
+        conteudos: ["razão", "proporção"],
+        gabarito: "E"
+    },
+    {
+        ano: 2009,
+        numero: 140,
+        conteudos: ["porcentagem", "proporção"],
+        gabarito: "D"
+    },
+    {
+        ano: 2010,
+        numero: 141,
+        conteudos: ["estatística"],
+        gabarito: "B"
+    },
+    {
+        ano: 2011,
+        numero: 157,
+        conteudos: ["geometria", "trigonometria"],
+        gabarito: "B"
+    },
+    {
+        ano: 2018,
+        numero: 151,
+        conteudos: ["probabilidade", "estatística", "multiplicação"],
+        gabarito: "C"
+    }
+];
 
-        function filtrar() {
-            const visu = document.getElementById("tipo").value;
-            const resultado = document.getElementById("resultado");
+function filtrar() {
+    const select = document.getElementById("conteudos");
+    const selecionados = Array.from(select.selectedOptions).map(o => o.value);
+    const resultado = document.getElementById("resultado");
 
-            resultado.innerHTML = "";
+    resultado.innerHTML = "";
 
-            if (!visu) {
-                resultado.innerHTML = "Selecione um tipo de questão.";
-                return;
-            }
+    if (selecionados.length === 0) {
+        resultado.innerHTML = "Selecione ao menos um conteúdo.";
+        return;
+    }
 
-            let encontradas = [];
+    const filtradas = questoes.filter(q =>
+        selecionados.every(c => q.conteudos.includes(c))
+    );
 
-            for (const q in questoes) {
-                if (questoes[q] === visu) {
-                    encontradas.push(q);
-                }
-            }
+    if (filtradas.length === 0) {
+        resultado.innerHTML = "Nenhuma questão encontrada.";
+        return;
+    }
 
-            if (encontradas.length === 0) {
-                resultado.innerHTML = "Nenhuma questão encontrada.";
-            } else {
-                resultado.innerHTML = 
-                    "<strong>Questões encontradas:</strong><br>" +
-                    encontradas.join("<br>");
-            }
-        }
-    </script>
+    filtradas.forEach(q => {
+        resultado.innerHTML += `
+            <div class="questao">
+                <strong>${q.ano} - Questão ${q.numero}</strong><br>
+                Conteúdos: ${q.conteudos.join(", ")}<br>
+                Gabarito: <strong>${q.gabarito}</strong>
+            </div>
+        `;
+    });
+}
+</script>
 
 </body>
 </html>
