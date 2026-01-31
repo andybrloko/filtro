@@ -4,30 +4,129 @@
   <meta charset="UTF-8">
   <title>Questões ENEM Matemática</title>
   <link rel="icon" href="favicon.png" type="image/png">
+
   <style>
-  body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-  }
+    * {
+      box-sizing: border-box;
+    }
 
-  .questao {
-    margin-bottom: 40px;
-  }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #eaeaea;
+    }
 
-  img {
-    display: block;
-    margin: 20px auto;
-    max-width: 90%;
-  }
+    header {
+      padding: 30px 20px;
+      text-align: center;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    header p {
+      margin-top: 8px;
+      color: #aaa;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .filtros {
+      background: #1e1e1e;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+    }
+
+    .filtros h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    #filtros label {
+      display: inline-flex;
+      align-items: center;
+      margin-right: 15px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #filtros input {
+      margin-right: 6px;
+      accent-color: #4caf50;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .questao {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .questao h3 {
+      margin-top: 0;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .questao img {
+      width: 100%;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .questao p {
+      margin: 4px 0;
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #777;
+      font-size: 13px;
+    }
   </style>
 </head>
+
 <body>
 
-<h1>Questões de Matemática – ENEM 2009 a 2025</h1>
-<h3>Filtrar por conteúdos</h3>
-<div id="filtros"></div>
-<hr>
-<div id="container"></div>
+<header>
+  <h1>Questões de Matemática – ENEM</h1>
+  <p>2009 a 2025 • Filtro por conteúdos</p>
+</header>
+
+<main>
+  <div class="filtros">
+    <h3>Filtrar por conteúdos</h3>
+    <div id="filtros"></div>
+  </div>
+
+  <div id="container" class="grid">
+    Carregando questões...
+  </div>
+</main>
+
+<footer>
+  © ENEM Matemática • Projeto pessoal
+</footer>
 
 <script>
 let questoes = [];
@@ -48,19 +147,16 @@ fetch("questoes.csv")
       conteudosSet.add(conteudos);
     });
 
-    // Criação dos checkboxes
     [...conteudosSet].sort().forEach(c => {
       const label = document.createElement("label");
-      label.style.marginRight = "15px";
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.value = c;
-
       checkbox.addEventListener("change", aplicarFiltro);
 
       label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(" " + c));
+      label.appendChild(document.createTextNode(c));
       filtrosDiv.appendChild(label);
     });
 
@@ -91,7 +187,7 @@ fetch("questoes.csv")
 
         div.innerHTML = `
           <h3>${q.ano} – Questão ${q.num}</h3>
-          <img src="imagens/${q.ano}_q${q.num}.png">
+          <img src="imagens/${q.ano}_q${q.num}.png" alt="Questão ${q.num}">
           <p><strong>Conteúdos:</strong> ${q.conteudos}</p>
           <p><strong>Gabarito:</strong> ${q.gabarito}</p>
         `;
