@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Filtro de Questões</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #121212;
+            color: #eee;
+            padding: 40px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        select, button {
+            padding: 10px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        #resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background: #1e1e1e;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Filtro de Questões</h1>
+
+    <label for="tipo">Tipo de questão:</label>
+    <select id="tipo">
+        <option value="">Selecione</option>
+        <option value="1">Razão</option>
+        <option value="2">Proporção</option>
+        <option value="3">Volume</option>
+    </select>
+
+    <button onclick="filtrar()">Filtrar</button>
+
+    <div id="resultado"></div>
+
+    <script>
+        // equivalente ao seu dicionário Python
+        const questoes = {
+            q1: "1",
+            q2: "2",
+            q3: "2"
+        };
+
+        function filtrar() {
+            const visu = document.getElementById("tipo").value;
+            const resultado = document.getElementById("resultado");
+
+            resultado.innerHTML = "";
+
+            if (!visu) {
+                resultado.innerHTML = "Selecione um tipo de questão.";
+                return;
+            }
+
+            let encontradas = [];
+
+            for (const q in questoes) {
+                if (questoes[q] === visu) {
+                    encontradas.push(q);
+                }
+            }
+
+            if (encontradas.length === 0) {
+                resultado.innerHTML = "Nenhuma questão encontrada.";
+            } else {
+                resultado.innerHTML = 
+                    "<strong>Questões encontradas:</strong><br>" +
+                    encontradas.join("<br>");
+            }
+        }
+    </script>
+
+</body>
+</html>
