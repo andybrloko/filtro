@@ -216,13 +216,6 @@ fetch("questoes.csv")
           <p><strong>Gabarito:</strong> ${q.gabarito}</p>
         `;
 
-         div.innerHTML = `
-          <h3>${q.ano} – Questão ${q.num}</h3>
-          <img src="imagens/${q.ano}_q${q.num}.PNG">
-          <p><strong>Categoria:</strong> ${q.categoria}</p>
-          <p><strong>Gabarito:</strong> ${q.gabarito}</p>
-        `;
-
 
         container.appendChild(div);
       });
@@ -233,6 +226,7 @@ fetch("questoes.csv")
 
 </body>
 </html>
+
 
 
 
