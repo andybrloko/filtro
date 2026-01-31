@@ -131,37 +131,68 @@
 <script>
 let questoes = [];
 
+// =======================
+// NORMALIZA TEXTO
+// =======================
+function normalizar(txt) {
+  return txt
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/\(.*?\)/g, "")
+    .replace(/[-–—].*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 fetch("questoes.csv")
   .then(r => r.text())
   .then(csv => {
     const linhas = csv.trim().split("\n").slice(1);
     const container = document.getElementById("container");
     const filtrosDiv = document.getElementById("filtros");
-    const conteudosSet = new Set();
+
+    const mapaFiltros = new Map();
 
     linhas.forEach(linha => {
-      const [ano, num, conteudos, gabarito] = linha.split(";");
-      if (!ano || !num) return;
+      const [ano, num, conteudosRaw, gabarito] = linha.split(";");
+      if (!ano || !num || !conteudosRaw) return;
+
+      const conteudos = conteudosRaw.split("|").map(c => c.trim());
 
       questoes.push({ ano, num, conteudos, gabarito });
-      conteudosSet.add(conteudos);
+
+      conteudos.forEach(c => {
+        const chave = normalizar(c);
+        if (!mapaFiltros.has(chave)) {
+          mapaFiltros.set(chave, c);
+        }
+      });
     });
 
-    [...conteudosSet].sort().forEach(c => {
-      const label = document.createElement("label");
+    // =======================
+    // CRIA FILTROS LIMPOS
+    // =======================
+    [...mapaFiltros.entries()]
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .forEach(([chave, texto]) => {
+        const label = document.createElement("label");
 
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.value = c;
-      checkbox.addEventListener("change", aplicarFiltro);
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = chave;
+        checkbox.addEventListener("change", aplicarFiltro);
 
-      label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(c));
-      filtrosDiv.appendChild(label);
-    });
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(" " + texto));
+
+        filtrosDiv.appendChild(label);
+      });
 
     renderizar(questoes);
 
+    // =======================
+    // FILTRAGEM
+    // =======================
     function aplicarFiltro() {
       const selecionados = [...document.querySelectorAll("#filtros input:checked")]
         .map(cb => cb.value);
@@ -172,12 +203,17 @@ fetch("questoes.csv")
       }
 
       const filtradas = questoes.filter(q =>
-        selecionados.some(s => q.conteudos.includes(s))
+        q.conteudos.some(c =>
+          selecionados.includes(normalizar(c))
+        )
       );
 
       renderizar(filtradas);
     }
 
+    // =======================
+    // RENDER
+    // =======================
     function renderizar(lista) {
       container.innerHTML = "";
 
@@ -188,7 +224,7 @@ fetch("questoes.csv")
         div.innerHTML = `
           <h3>${q.ano} – Questão ${q.num}</h3>
           <img src="imagens/${q.ano}_q${q.num}.png" alt="Questão ${q.num}">
-          <p><strong>Conteúdos:</strong> ${q.conteudos}</p>
+          <p><strong>Conteúdos:</strong> ${q.conteudos.join(", ")}</p>
           <p><strong>Gabarito:</strong> ${q.gabarito}</p>
         `;
 
@@ -200,3 +236,4 @@ fetch("questoes.csv")
 
 </body>
 </html>
+
