@@ -6,133 +6,83 @@
   <link rel="icon" href="favicon.png" type="image/png">
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background: #121212;
-      color: #eaeaea;
-    }
-
-    header {
-      padding: 30px 20px;
-      text-align: center;
-      border-bottom: 1px solid #2a2a2a;
-    }
-
-    header h1 {
+      background: #f4f6f8;
       margin: 0;
-      font-size: 28px;
     }
 
-    header p {
-      margin-top: 8px;
-      color: #aaa;
+    h1, h3 {
+      text-align: center;
     }
 
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 20px;
+    .secao-filtros {
+      margin: 20px;
+    }
+
+    .secao-filtros h3 {
+      margin-bottom: 10px;
     }
 
     .filtros {
-      background: #1e1e1e;
-      padding: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .filtro {
+      background: #fff;
+      padding: 8px 12px;
       border-radius: 8px;
-      margin-bottom: 25px;
-    }
-
-    .filtros h3 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      font-size: 18px;
-    }
-
-    #filtros label {
-      display: inline-flex;
-      align-items: center;
-      margin-right: 15px;
-      margin-bottom: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       cursor: pointer;
-      font-size: 14px;
+      user-select: none;
     }
 
-    #filtros input {
-      margin-right: 6px;
-      accent-color: #4caf50;
-    }
-
-    .grid {
+    #container {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 20px;
+      padding: 20px;
     }
 
     .questao {
-      background: #1a1a1a;
+      background: #fff;
       padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #2a2a2a;
-    }
-
-    .questao h3 {
-      margin-top: 0;
-      font-size: 16px;
-      margin-bottom: 10px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
     .questao img {
-      width: 100%;
-      border-radius: 6px;
-      margin-bottom: 10px;
-    }
-
-    .questao p {
-      margin: 4px 0;
-      font-size: 14px;
-      color: #ccc;
-    }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      color: #777;
-      font-size: 13px;
+      max-width: 100%;
+      border-radius: 8px;
     }
   </style>
 </head>
-
 <body>
 
-<header>
-  <h1>Questões de Matemática – ENEM</h1>
-  <p>2009 a 2025 • Filtro por conteúdos</p>
-</header>
+<h1>Questões de Matemática – ENEM</h1>
 
-<main>
-  <div class="filtros">
-    <h3>Filtrar por conteúdos</h3>
-    <div id="filtros"></div>
-  </div>
+<div class="secao-filtros">
+  <h3>Filtrar por conteúdo</h3>
+  <div id="filtrosConteudo" class="filtros"></div>
+</div>
 
-  <div id="container" class="grid">
-    Carregando questões...
-  </div>
-</main>
+<div class="secao-filtros">
+  <h3>Filtrar por ano</h3>
+  <div id="filtrosAno" class="filtros"></div>
+</div>
 
-<footer>
-  © ENEM Matemática • Projeto pessoal
-</footer>
+<hr>
+
+<div id="container"></div>
 
 <script>
 let questoes = [];
 
 // =======================
-// DETECTA CATEGORIA MÃE
+// CATEGORIA PRINCIPAL
 // =======================
 function categoriaPrincipal(texto) {
   texto = texto.toLowerCase();
@@ -145,8 +95,8 @@ function categoriaPrincipal(texto) {
   if (texto.includes("geometria espacial")) return "Geometria Espacial";
   if (texto.includes("probabilidade") || texto.includes("combinatória")) return "Probabilidade";
   if (texto.includes("escala") || texto.includes("proporção")) return "Escala e Proporção";
-  if (texto.includes("função exponencial")) return "Função Exponencial";
-  if (texto.includes("função logarítmica")) return "Função Logarítmica";
+  if (texto.includes("exponencial")) return "Função Exponencial";
+  if (texto.includes("logarítmica")) return "Função Logarítmica";
 
   return "Outros";
 }
@@ -155,53 +105,83 @@ fetch("questoes.csv")
   .then(r => r.text())
   .then(csv => {
     const linhas = csv.trim().split("\n").slice(1);
+
+    const filtrosConteudo = document.getElementById("filtrosConteudo");
+    const filtrosAno = document.getElementById("filtrosAno");
     const container = document.getElementById("container");
-    const filtrosDiv = document.getElementById("filtros");
 
     const categorias = new Set();
+    const anos = new Set();
 
     linhas.forEach(linha => {
       const [ano, num, conteudos, gabarito] = linha.split(";");
       if (!ano || !num) return;
 
       const categoria = categoriaPrincipal(conteudos);
-      categorias.add(categoria);
 
-      questoes.push({ ano, num, conteudos, gabarito, categoria });
+      questoes.push({
+        ano,
+        num,
+        conteudos,
+        gabarito,
+        categoria
+      });
+
+      categorias.add(categoria);
+      anos.add(ano);
     });
 
     // =======================
-    // FILTROS LIMPOS
+    // FILTROS DE CONTEÚDO
     // =======================
     [...categorias].sort().forEach(cat => {
+      filtrosConteudo.appendChild(criarCheckbox(cat, aplicarFiltro));
+    });
+
+    // =======================
+    // FILTROS DE ANO
+    // =======================
+    [...anos].sort((a, b) => b - a).forEach(ano => {
+      filtrosAno.appendChild(criarCheckbox(ano, aplicarFiltro));
+    });
+
+    renderizar(questoes);
+
+    function criarCheckbox(valor, onChange) {
       const label = document.createElement("label");
       label.className = "filtro";
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
-      checkbox.value = cat;
-      checkbox.addEventListener("change", aplicarFiltro);
+      checkbox.value = valor;
+      checkbox.addEventListener("change", onChange);
 
       label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(" " + cat));
+      label.appendChild(document.createTextNode(" " + valor));
 
-      filtrosDiv.appendChild(label);
-    });
-
-    renderizar(questoes);
+      return label;
+    }
 
     function aplicarFiltro() {
-      const ativos = [...document.querySelectorAll("#filtros input:checked")]
+      const conteudosSelecionados = [...document.querySelectorAll("#filtrosConteudo input:checked")]
         .map(cb => cb.value);
 
-      if (ativos.length === 0) {
-        renderizar(questoes);
-        return;
-      }
+      const anosSelecionados = [...document.querySelectorAll("#filtrosAno input:checked")]
+        .map(cb => cb.value);
 
-      renderizar(
-        questoes.filter(q => ativos.includes(q.categoria))
-      );
+      const filtradas = questoes.filter(q => {
+        const okConteudo =
+          conteudosSelecionados.length === 0 ||
+          conteudosSelecionados.includes(q.categoria);
+
+        const okAno =
+          anosSelecionados.length === 0 ||
+          anosSelecionados.includes(q.ano);
+
+        return okConteudo && okAno;
+      });
+
+      renderizar(filtradas);
     }
 
     function renderizar(lista) {
@@ -223,7 +203,6 @@ fetch("questoes.csv")
     }
   });
 </script>
+
 </body>
 </html>
-
-
