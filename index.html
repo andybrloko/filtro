@@ -20,10 +20,6 @@
       margin: 20px;
     }
 
-    .secao-filtros h3 {
-      margin-bottom: 10px;
-    }
-
     .filtros {
       display: flex;
       flex-wrap: wrap;
@@ -36,12 +32,6 @@
       padding: 8px 12px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .filtro input {
-      margin-right: 6px;
       cursor: pointer;
     }
 
@@ -71,17 +61,19 @@
     .questao img {
       max-width: 100%;
       border-radius: 8px;
+      margin: 10px 0;
     }
+
     .gabarito {
-    filter: blur(6px);
-    transition: filter 0.3s ease;
-    cursor: pointer;
+      filter: blur(6px);
+      transition: filter 0.3s ease;
+      user-select: none;
     }
-    
+
     .gabarito.mostrar {
       filter: none;
     }
-    
+
     .btn-gabarito {
       margin-top: 8px;
       padding: 6px 10px;
@@ -91,7 +83,7 @@
       color: #fff;
       cursor: pointer;
     }
-    
+
     .btn-gabarito:hover {
       background: #125aa0;
     }
@@ -162,27 +154,14 @@ fetch("questoes.csv")
 
       const categoria = categoriaPrincipal(conteudos);
 
-      questoes.push({
-        ano,
-        num,
-        conteudos,
-        gabarito,
-        categoria
-      });
-
+      questoes.push({ ano, num, conteudos, gabarito, categoria });
       categorias.add(categoria);
       anos.add(ano);
     });
 
-    // =======================
-    // CRIAR CHECKBOXES
-    // =======================
-    [...categorias].sort().forEach(cat => filtrosConteudo.appendChild(criarCheckbox(cat, aplicarFiltros)));
-    [...anos].sort((a,b) => b - a).forEach(ano => filtrosAno.appendChild(criarCheckbox(ano, aplicarFiltros)));
+    [...categorias].sort().forEach(c => filtrosConteudo.appendChild(criarCheckbox(c)));
+    [...anos].sort((a,b) => b - a).forEach(a => filtrosAno.appendChild(criarCheckbox(a)));
 
-    // =======================
-    // PESQUISA
-    // =======================
     document.getElementById("pesquisa").addEventListener("input", e => {
       termoPesquisa = e.target.value.toLowerCase();
       aplicarFiltros();
@@ -190,40 +169,29 @@ fetch("questoes.csv")
 
     renderizar(questoes);
 
-    <p class="gabarito" id="gab_${q.ano}_${q.num}">
-    <strong>Gabarito:</strong> ${q.gabarito}
-    </p>
-  
-    <button class="btn-gabarito"
-    onclick="mostrarGabarito('gab_${q.ano}_${q.num}', this)">
-    Mostrar gabarito
-    </button>
-    
-    function criarCheckbox(valor, onChange) {
+    function criarCheckbox(valor) {
       const label = document.createElement("label");
       label.className = "filtro";
 
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.value = valor;
-      checkbox.addEventListener("change", onChange);
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.value = valor;
+      cb.addEventListener("change", aplicarFiltros);
 
-      label.appendChild(checkbox);
+      label.appendChild(cb);
       label.appendChild(document.createTextNode(" " + valor));
-
       return label;
     }
 
     function aplicarFiltros() {
-      const conteudosSelecionados = [...document.querySelectorAll("#filtrosConteudo input:checked")].map(cb => cb.value);
-      const anosSelecionados = [...document.querySelectorAll("#filtrosAno input:checked")].map(cb => cb.value);
+      const cSel = [...document.querySelectorAll("#filtrosConteudo input:checked")].map(x => x.value);
+      const aSel = [...document.querySelectorAll("#filtrosAno input:checked")].map(x => x.value);
 
-      const filtradas = questoes.filter(q => {
-        const okConteudo = conteudosSelecionados.length === 0 || conteudosSelecionados.includes(q.categoria);
-        const okAno = anosSelecionados.length === 0 || anosSelecionados.includes(q.ano);
-        const okPesquisa = termoPesquisa === "" || (`${q.ano} ${q.num}`).toLowerCase().includes(termoPesquisa);
-        return okConteudo && okAno && okPesquisa;
-      });
+      const filtradas = questoes.filter(q =>
+        (cSel.length === 0 || cSel.includes(q.categoria)) &&
+        (aSel.length === 0 || aSel.includes(q.ano)) &&
+        (termoPesquisa === "" || (`${q.ano} ${q.num}`).toLowerCase().includes(termoPesquisa))
+      );
 
       renderizar(filtradas);
     }
@@ -237,44 +205,42 @@ fetch("questoes.csv")
       }
 
       lista.forEach(q => {
+        const idGab = `gab_${q.ano}_${q.num}`;
+
         const div = document.createElement("div");
         div.className = "questao";
         div.innerHTML = `
           <h3>${q.ano} – Questão ${q.num}</h3>
-          <img src="imagens/${q.ano}_q${q.num}.png"
-          onerror="this.onerror=null; this.src='imagens/${q.ano}_q${q.num}.PNG';">
+
+          <img 
+            src="imagens/${q.ano}_q${q.num}.png"
+            onerror="this.onerror=null; this.src='imagens/${q.ano}_q${q.num}.PNG';">
+
           <p><strong>Categoria:</strong> ${q.categoria}</p>
-          <p><strong>Gabarito:</strong> ${q.gabarito}</p>
+
+          <p class="gabarito" id="${idGab}">
+            <strong>Gabarito:</strong> ${q.gabarito}
+          </p>
+
+          <button class="btn-gabarito"
+            onclick="mostrarGabarito('${idGab}', this)">
+            Mostrar gabarito
+          </button>
         `;
-          
-          container.appendChild(div);
-          function mostrarGabarito(id, botao) {
-          const gabarito = document.getElementById(id);
-          gabarito.classList.add("mostrar");
-          botao.style.display = "none";
-          }
-        
+
+        container.appendChild(div);
       });
     }
-
   });
+
+// =======================
+// MOSTRAR GABARITO
+// =======================
+function mostrarGabarito(id, botao) {
+  document.getElementById(id).classList.add("mostrar");
+  botao.style.display = "none";
+}
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
