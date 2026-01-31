@@ -209,10 +209,7 @@ fetch("questoes.csv")
         div.className = "questao";
         div.innerHTML = `
           <h3>${q.ano} – Questão ${q.num}</h3>
-          <img src="imagens/${q.ano}_q${q.num}.PNG">
-          <img src="imagens/${q.ano}_q${q.num}.PNG ">
           <img src="imagens/${q.ano}_q${q.num}.png">
-          <img src="imagens/${q.ano}_q${q.num}.png ">
           <p><strong>Categoria:</strong> ${q.categoria}</p>
           <p><strong>Gabarito:</strong> ${q.gabarito}</p>
         `;
@@ -226,6 +223,7 @@ fetch("questoes.csv")
 
 </body>
 </html>
+
 
 
 
