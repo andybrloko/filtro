@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Filtro de Questões</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,16 +16,32 @@
             margin-bottom: 20px;
         }
 
-        select, button {
+        button {
             padding: 10px;
             font-size: 16px;
-            margin: 5px 0;
-            width: 100%;
+            margin-top: 15px;
+            cursor: pointer;
         }
 
-        button {
+        .filtros {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 400px;
+        }
+
+        .filtros h3 {
+            margin-bottom: 10px;
+        }
+
+        .filtros label {
+            display: block;
+            margin-bottom: 8px;
             cursor: pointer;
-            margin-top: 10px;
+        }
+
+        .filtros input {
+            margin-right: 8px;
         }
 
         #resultado {
@@ -32,6 +49,7 @@
             padding: 15px;
             background: #1e1e1e;
             border-radius: 6px;
+            max-width: 600px;
         }
 
         .questao {
@@ -41,19 +59,24 @@
         }
     </style>
 </head>
+
 <body>
 
 <h1>Filtro de Questões</h1>
 
-<label for="conteudos">Conteúdos (Ctrl para múltiplos):</label>
-<select id="conteudos" multiple size="6">
-    <option value="razão">Razão</option>
-    <option value="proporção">Proporção</option>
-    <option value="porcentagem">Porcentagem</option>
-    <option value="estatística">Estatística</option>
-    <option value="geometria">Geometria</option>
-    <option value="função">Função</option>
-</select>
+<div class="filtros">
+    <h3>Conteúdos</h3>
+
+    <label><input type="checkbox" value="razão"> Razão</label>
+    <label><input type="checkbox" value="proporção"> Proporção</label>
+    <label><input type="checkbox" value="porcentagem"> Porcentagem</label>
+    <label><input type="checkbox" value="estatística"> Estatística</label>
+    <label><input type="checkbox" value="geometria"> Geometria</label>
+    <label><input type="checkbox" value="função"> Função</label>
+    <label><input type="checkbox" value="trigonometria"> Trigonometria</label>
+    <label><input type="checkbox" value="probabilidade"> Probabilidade</label>
+    <label><input type="checkbox" value="multiplicação"> Multiplicação</label>
+</div>
 
 <button onclick="filtrar()">Filtrar</button>
 
@@ -94,8 +117,8 @@ const questoes = [
 ];
 
 function filtrar() {
-    const select = document.getElementById("conteudos");
-    const selecionados = Array.from(select.selectedOptions).map(o => o.value);
+    const checkboxes = document.querySelectorAll('.filtros input:checked');
+    const selecionados = Array.from(checkboxes).map(c => c.value);
     const resultado = document.getElementById("resultado");
 
     resultado.innerHTML = "";
