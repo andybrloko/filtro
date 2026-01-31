@@ -113,10 +113,9 @@
 
 <script>
 let questoes = [];
-let filtrosConteudo = [];
-let filtrosAno = [];
 let termoPesquisa = "";
 
+// Buscar CSV
 fetch("questoes.csv")
   .then(r => r.text())
   .then(csv => {
@@ -130,39 +129,25 @@ fetch("questoes.csv")
 
       const listaConteudos = conteudos.split("|").map(c => c.trim());
 
-      questoes.push({
-        ano,
-        num,
-        conteudos: listaConteudos,
-        gabarito
-      });
+      questoes.push({ ano, num, conteudos: listaConteudos, gabarito });
 
       listaConteudos.forEach(c => conteudosSet.add(c));
       anosSet.add(ano);
     });
 
-    criarFiltros(conteudosSet);
-    criarFiltrosAno(anosSet);
+    criarFiltros([...conteudosSet].sort(), "filtros");
+    criarFiltros([...anosSet].sort(), "anos");
+
     renderizar(questoes);
   });
 
-function criarFiltros(set) {
-  const div = document.getElementById("filtros");
+function criarFiltros(lista, id) {
+  const div = document.getElementById(id);
+  div.innerHTML = "";
 
-  [...set].sort().forEach(c => {
+  lista.forEach(item => {
     const label = document.createElement("label");
-    label.innerHTML = `<input type="checkbox" value="${c}"> ${c}`;
-    label.querySelector("input").addEventListener("change", aplicarFiltros);
-    div.appendChild(label);
-  });
-}
-
-function criarFiltrosAno(set) {
-  const div = document.getElementById("anos");
-
-  [...set].sort().forEach(a => {
-    const label = document.createElement("label");
-    label.innerHTML = `<input type="checkbox" value="${a}"> ${a}`;
+    label.innerHTML = `<input type="checkbox" value="${item}"> ${item}`;
     label.querySelector("input").addEventListener("change", aplicarFiltros);
     div.appendChild(label);
   });
@@ -174,31 +159,15 @@ document.getElementById("pesquisa").addEventListener("input", e => {
 });
 
 function aplicarFiltros() {
-  filtrosConteudo = [...document.querySelectorAll("#filtros input:checked")]
-    .map(i => i.value);
+  const filtrosConteudo = [...document.querySelectorAll("#filtros input:checked")].map(i => i.value);
+  const filtrosAno = [...document.querySelectorAll("#anos input:checked")].map(i => i.value);
 
-  filtrosAno = [...document.querySelectorAll("#anos input:checked")]
-    .map(i => i.value);
-
-  let filtradas = questoes;
-
-  if (filtrosConteudo.length > 0) {
-    filtradas = filtradas.filter(q =>
-      filtrosConteudo.some(f => q.conteudos.includes(f))
-    );
-  }
-
-  if (filtrosAno.length > 0) {
-    filtradas = filtradas.filter(q =>
-      filtrosAno.includes(q.ano)
-    );
-  }
-
-  if (termoPesquisa) {
-    filtradas = filtradas.filter(q =>
-      `${q.ano} ${q.num}`.toLowerCase().includes(termoPesquisa)
-    );
-  }
+  let filtradas = questoes.filter(q => {
+    const correspondeConteudo = filtrosConteudo.length ? q.conteudos.some(c => filtrosConteudo.includes(c)) : true;
+    const correspondeAno = filtrosAno.length ? filtrosAno.includes(q.ano) : true;
+    const correspondePesquisa = termoPesquisa ? `${q.ano} ${q.num}`.toLowerCase().includes(termoPesquisa) : true;
+    return correspondeConteudo && correspondeAno && correspondePesquisa;
+  });
 
   renderizar(filtradas);
 }
@@ -207,7 +176,7 @@ function renderizar(lista) {
   const container = document.getElementById("container");
   container.innerHTML = "";
 
-  if (lista.length === 0) {
+  if (!lista.length) {
     container.innerHTML = "<p style='text-align:center'>Nada encontrado.</p>";
     return;
   }
@@ -215,14 +184,12 @@ function renderizar(lista) {
   lista.forEach(q => {
     const div = document.createElement("div");
     div.className = "questao";
-
     div.innerHTML = `
       <h3>${q.ano} – Questão ${q.num}</h3>
       <img src="imagens/${q.ano}_q${q.num}.png" alt="Questão ${q.num}">
       <p><strong>Conteúdos:</strong> ${q.conteudos.join(", ")}</p>
       <p><strong>Gabarito:</strong> ${q.gabarito}</p>
     `;
-
     container.appendChild(div);
   });
 }
