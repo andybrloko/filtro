@@ -1,162 +1,106 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Filtro de Questões</title>
-
-<style>
-body {
-    background: #121212;
-    color: #e0e0e0;
+  <meta charset="UTF-8">
+  <title>Questões ENEM Matemática</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <style>
+  body {
     font-family: Arial, sans-serif;
-    padding: 20px;
-}
+    text-align: center;
+  }
 
-h1 {
-    margin-bottom: 10px;
-}
+  .questao {
+    margin-bottom: 40px;
+  }
 
-.filtros {
-    background: #1e1e1e;
-    padding: 15px;
-    border-radius: 8px;
-    max-width: 400px;
-    margin-bottom: 20px;
-}
-
-.filtros h3 {
-    margin-bottom: 10px;
-}
-
-.filtros label {
+  img {
     display: block;
-    margin-bottom: 6px;
-    cursor: pointer;
-}
-
-.lista {
-    background: #1a1a1a;
-    padding: 15px;
-    border-radius: 8px;
-}
-
-.questao {
-    padding: 8px;
-    border-bottom: 1px solid #333;
-}
-</style>
+    margin: 20px auto;
+    max-width: 90%;
+  }
+  </style>
 </head>
-
 <body>
 
-<h1>Questões</h1>
-
-<div class="filtros">
-    <h3>Conteúdos</h3>
-    <div id="filtros-conteudos"></div>
-</div>
-
-<div class="lista" id="lista-questoes">
-    Carregando questões...
-</div>
+<h1>Questões de Matemática – ENEM 2009 a 2025</h1>
+<h3>Filtrar por conteúdos</h3>
+<div id="filtros"></div>
+<hr>
+<div id="container"></div>
 
 <script>
 let questoes = [];
 
 fetch("questoes.csv")
-  .then(res => {
-    if (!res.ok) throw new Error("Erro ao carregar CSV");
-    return res.text();
-  })
-  .then(texto => {
-    questoes = parseCSV(texto);
-    criarFiltros();
-    renderizar(questoes);
-    console.log("Questões carregadas:", questoes);
-  })
-  .catch(console.error);
+  .then(r => r.text())
+  .then(csv => {
+    const linhas = csv.trim().split("\n").slice(1);
+    const container = document.getElementById("container");
+    const filtrosDiv = document.getElementById("filtros");
+    const conteudosSet = new Set();
 
-function parseCSV(csv) {
-  const linhas = csv.trim().split("\n");
-  const cabecalho = linhas.shift().split(",");
+    linhas.forEach(linha => {
+      const [ano, num, conteudos, gabarito] = linha.split(";");
+      if (!ano || !num) return;
 
-  return linhas.map(linha => {
-    // regex decente pra CSV
-    const valores = linha.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
-      .map(v => v.replace(/"/g, "").trim());
-
-    let obj = {};
-    cabecalho.forEach((col, i) => {
-      if (col === "conteudos") {
-        obj[col] = valores[i]
-          .split("|")
-          .map(c => c.trim().toLowerCase());
-      } else {
-        obj[col] = valores[i];
-      }
+      questoes.push({ ano, num, conteudos, gabarito });
+      conteudosSet.add(conteudos);
     });
-    return obj;
-  });
-}
 
-function criarFiltros() {
-  const set = new Set();
+    // Criação dos checkboxes
+    [...conteudosSet].sort().forEach(c => {
+      const label = document.createElement("label");
+      label.style.marginRight = "15px";
 
-  questoes.forEach(q =>
-    q.conteudos.forEach(c => set.add(c))
-  );
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = c;
 
-  const container = document.getElementById("filtros-conteudos");
-  container.innerHTML = "";
+      checkbox.addEventListener("change", aplicarFiltro);
 
-  [...set].sort().forEach(conteudo => {
-    const label = document.createElement("label");
-    label.innerHTML = `
-      <input type="checkbox" value="${conteudo}">
-      ${conteudo}
-    `;
-    container.appendChild(label);
-  });
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(" " + c));
+      filtrosDiv.appendChild(label);
+    });
 
-  container.addEventListener("change", aplicarFiltros);
-}
-
-function aplicarFiltros() {
-  const ativos = [...document.querySelectorAll(
-    "#filtros-conteudos input:checked"
-  )].map(i => i.value);
-
-  if (ativos.length === 0) {
     renderizar(questoes);
-    return;
-  }
 
-  const filtradas = questoes.filter(q =>
-    ativos.every(a => q.conteudos.includes(a))
-  );
+    function aplicarFiltro() {
+      const selecionados = [...document.querySelectorAll("#filtros input:checked")]
+        .map(cb => cb.value);
 
-  renderizar(filtradas);
-}
+      if (selecionados.length === 0) {
+        renderizar(questoes);
+        return;
+      }
 
-function renderizar(lista) {
-  const div = document.getElementById("lista-questoes");
-  div.innerHTML = "";
+      const filtradas = questoes.filter(q =>
+        selecionados.some(s => q.conteudos.includes(s))
+      );
 
-  if (lista.length === 0) {
-    div.textContent = "Nenhuma questão encontrada.";
-    return;
-  }
+      renderizar(filtradas);
+    }
 
-  lista.forEach(q => {
-    const el = document.createElement("div");
-    el.className = "questao";
-    el.textContent =
-      `Ano ${q.ano} | Nº ${q.numero} | Conteúdos: ${q.conteudos.join(", ")} | Gabarito: ${q.gabarito}`;
-    div.appendChild(el);
+    function renderizar(lista) {
+      container.innerHTML = "";
+
+      lista.forEach(q => {
+        const div = document.createElement("div");
+        div.className = "questao";
+
+        div.innerHTML = `
+          <h3>${q.ano} – Questão ${q.num}</h3>
+          <img src="imagens/${q.ano}_q${q.num}.png">
+          <p><strong>Conteúdos:</strong> ${q.conteudos}</p>
+          <p><strong>Gabarito:</strong> ${q.gabarito}</p>
+        `;
+
+        container.appendChild(div);
+      });
+    }
   });
-}
 </script>
 
 </body>
 </html>
-
