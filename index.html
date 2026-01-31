@@ -1,150 +1,149 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Filtro de Questões</title>
+<meta charset="UTF-8">
+<title>Filtro de Questões</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #121212;
-            color: #eee;
-            padding: 40px;
-        }
+<style>
+body {
+    background: #121212;
+    color: #e0e0e0;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
 
-        h1 {
-            margin-bottom: 20px;
-        }
+h1 {
+    margin-bottom: 10px;
+}
 
-        button {
-            padding: 10px;
-            font-size: 16px;
-            margin-top: 15px;
-            cursor: pointer;
-        }
+.filtros {
+    background: #1e1e1e;
+    padding: 15px;
+    border-radius: 8px;
+    max-width: 400px;
+    margin-bottom: 20px;
+}
 
-        .filtros {
-            background: #1e1e1e;
-            padding: 15px;
-            border-radius: 8px;
-            max-width: 400px;
-        }
+.filtros h3 {
+    margin-bottom: 10px;
+}
 
-        .filtros h3 {
-            margin-bottom: 10px;
-        }
+.filtros label {
+    display: block;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
 
-        .filtros label {
-            display: block;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
+.lista {
+    background: #1a1a1a;
+    padding: 15px;
+    border-radius: 8px;
+}
 
-        .filtros input {
-            margin-right: 8px;
-        }
-
-        #resultado {
-            margin-top: 20px;
-            padding: 15px;
-            background: #1e1e1e;
-            border-radius: 6px;
-            max-width: 600px;
-        }
-
-        .questao {
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #333;
-        }
-    </style>
+.questao {
+    padding: 8px;
+    border-bottom: 1px solid #333;
+}
+</style>
 </head>
 
 <body>
 
-<h1>Filtro de Questões</h1>
+<h1>Questões</h1>
 
 <div class="filtros">
     <h3>Conteúdos</h3>
-
-    <label><input type="checkbox" value="razão"> Razão</label>
-    <label><input type="checkbox" value="proporção"> Proporção</label>
-    <label><input type="checkbox" value="porcentagem"> Porcentagem</label>
-    <label><input type="checkbox" value="estatística"> Estatística</label>
-    <label><input type="checkbox" value="geometria"> Geometria</label>
-    <label><input type="checkbox" value="função"> Função</label>
-    <label><input type="checkbox" value="trigonometria"> Trigonometria</label>
-    <label><input type="checkbox" value="probabilidade"> Probabilidade</label>
-    <label><input type="checkbox" value="multiplicação"> Multiplicação</label>
+    <div id="filtros-conteudos"></div>
 </div>
 
-<button onclick="filtrar()">Filtrar</button>
-
-<div id="resultado"></div>
+<div class="lista" id="lista-questoes">
+    Carregando questões...
+</div>
 
 <script>
-const questoes = [
-    {
-        ano: 2009,
-        numero: 136,
-        conteudos: ["razão", "proporção"],
-        gabarito: "E"
-    },
-    {
-        ano: 2009,
-        numero: 140,
-        conteudos: ["porcentagem", "proporção"],
-        gabarito: "D"
-    },
-    {
-        ano: 2010,
-        numero: 141,
-        conteudos: ["estatística"],
-        gabarito: "B"
-    },
-    {
-        ano: 2011,
-        numero: 157,
-        conteudos: ["geometria", "trigonometria"],
-        gabarito: "B"
-    },
-    {
-        ano: 2018,
-        numero: 151,
-        conteudos: ["probabilidade", "estatística", "multiplicação"],
-        gabarito: "C"
-    }
-];
+let questoes = [];
 
-function filtrar() {
-    const checkboxes = document.querySelectorAll('.filtros input:checked');
-    const selecionados = Array.from(checkboxes).map(c => c.value);
-    const resultado = document.getElementById("resultado");
+fetch("questoes.csv")
+    .then(res => res.text())
+    .then(texto => {
+        questoes = csvParaObjetos(texto);
+        criarFiltros();
+        renderizar(questoes);
+    });
 
-    resultado.innerHTML = "";
+function csvParaObjetos(csv) {
+    const linhas = csv.trim().split("\n");
+    const cabecalho = linhas.shift().split(",");
+
+    return linhas.map(linha => {
+        const valores = linha.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
+            .map(v => v.replace(/"/g, ""));
+
+        const obj = {};
+        cabecalho.forEach((chave, i) => {
+            if (chave === "conteudos") {
+                obj[chave] = valores[i].split(";");
+            } else {
+                obj[chave] = valores[i];
+            }
+        });
+        return obj;
+    });
+}
+
+function criarFiltros() {
+    const todosConteudos = new Set();
+
+    questoes.forEach(q =>
+        q.conteudos.forEach(c => todosConteudos.add(c))
+    );
+
+    const container = document.getElementById("filtros-conteudos");
+
+    [...todosConteudos].sort().forEach(conteudo => {
+        const label = document.createElement("label");
+        label.innerHTML = `
+            <input type="checkbox" value="${conteudo}">
+            ${conteudo}
+        `;
+        container.appendChild(label);
+    });
+
+    container.addEventListener("change", aplicarFiltros);
+}
+
+function aplicarFiltros() {
+    const selecionados = [...document.querySelectorAll(
+        "#filtros-conteudos input:checked"
+    )].map(i => i.value);
 
     if (selecionados.length === 0) {
-        resultado.innerHTML = "Selecione ao menos um conteúdo.";
+        renderizar(questoes);
         return;
     }
 
     const filtradas = questoes.filter(q =>
-        selecionados.every(c => q.conteudos.includes(c))
+        selecionados.every(s => q.conteudos.includes(s))
     );
 
-    if (filtradas.length === 0) {
-        resultado.innerHTML = "Nenhuma questão encontrada.";
+    renderizar(filtradas);
+}
+
+function renderizar(lista) {
+    const div = document.getElementById("lista-questoes");
+    div.innerHTML = "";
+
+    if (lista.length === 0) {
+        div.textContent = "Nenhuma questão encontrada.";
         return;
     }
 
-    filtradas.forEach(q => {
-        resultado.innerHTML += `
-            <div class="questao">
-                <strong>${q.ano} - Questão ${q.numero}</strong><br>
-                Conteúdos: ${q.conteudos.join(", ")}<br>
-                Gabarito: <strong>${q.gabarito}</strong>
-            </div>
-        `;
+    lista.forEach(q => {
+        const el = document.createElement("div");
+        el.className = "questao";
+        el.textContent =
+            `Ano ${q.ano} | Nº ${q.numero} | Conteúdos: ${q.conteudos.join(", ")} | Gabarito: ${q.gabarito}`;
+        div.appendChild(el);
     });
 }
 </script>
