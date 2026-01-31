@@ -207,8 +207,8 @@ fetch("questoes.csv")
         titulo.textContent = `${q.ano} – Questão ${q.num}`;
     
         const img = document.createElement("img");
-        const png = `imagens/${q.ano}_${q.num}.png`;
-        const PNG = `imagens/${q.ano}_${q.num}.PNG`;
+        const png = `imagens/${q.ano}_q${q.num}.png`;
+        const PNG = `imagens/${q.ano}_q${q.num}.PNG`;
     
         img.onerror = () => img.src = PNG;
         img.src = png;
@@ -229,6 +229,7 @@ fetch("questoes.csv")
 
 </body>
 </html>
+
 
 
 
