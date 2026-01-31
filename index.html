@@ -72,6 +72,29 @@
       max-width: 100%;
       border-radius: 8px;
     }
+    .gabarito {
+    filter: blur(6px);
+    transition: filter 0.3s ease;
+    cursor: pointer;
+    }
+    
+    .gabarito.mostrar {
+      filter: none;
+    }
+    
+    .btn-gabarito {
+      margin-top: 8px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      background: #1976d2;
+      color: #fff;
+      cursor: pointer;
+    }
+    
+    .btn-gabarito:hover {
+      background: #125aa0;
+    }
   </style>
 </head>
 <body>
@@ -167,6 +190,15 @@ fetch("questoes.csv")
 
     renderizar(questoes);
 
+    <p class="gabarito" id="gab_${q.ano}_${q.num}">
+    <strong>Gabarito:</strong> ${q.gabarito}
+    </p>
+  
+    <button class="btn-gabarito"
+    onclick="mostrarGabarito('gab_${q.ano}_${q.num}', this)">
+    Mostrar gabarito
+    </button>
+    
     function criarCheckbox(valor, onChange) {
       const label = document.createElement("label");
       label.className = "filtro";
@@ -216,6 +248,12 @@ fetch("questoes.csv")
         `;
           
           container.appendChild(div);
+          function mostrarGabarito(id, botao) {
+          const gabarito = document.getElementById(id);
+          gabarito.classList.add("mostrar");
+          botao.style.display = "none";
+          }
+        
       });
     }
 
@@ -224,6 +262,7 @@ fetch("questoes.csv")
 
 </body>
 </html>
+
 
 
 
