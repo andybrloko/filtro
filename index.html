@@ -64,89 +64,99 @@ h1 {
 let questoes = [];
 
 fetch("questoes.csv")
-    .then(res => res.text())
-    .then(texto => {
-        questoes = csvParaObjetos(texto);
-        criarFiltros();
-        renderizar(questoes);
+  .then(res => {
+    if (!res.ok) throw new Error("Erro ao carregar CSV");
+    return res.text();
+  })
+  .then(texto => {
+    questoes = parseCSV(texto);
+    criarFiltros();
+    renderizar(questoes);
+    console.log("Questões carregadas:", questoes);
+  })
+  .catch(console.error);
+
+function parseCSV(csv) {
+  const linhas = csv.trim().split("\n");
+  const cabecalho = linhas.shift().split(",");
+
+  return linhas.map(linha => {
+    // regex decente pra CSV
+    const valores = linha.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
+      .map(v => v.replace(/"/g, "").trim());
+
+    let obj = {};
+    cabecalho.forEach((col, i) => {
+      if (col === "conteudos") {
+        obj[col] = valores[i]
+          .split("|")
+          .map(c => c.trim().toLowerCase());
+      } else {
+        obj[col] = valores[i];
+      }
     });
-
-function csvParaObjetos(csv) {
-    const linhas = csv.trim().split("\n");
-    const cabecalho = linhas.shift().split(",");
-
-    return linhas.map(linha => {
-        const valores = linha.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
-            .map(v => v.replace(/"/g, ""));
-
-        const obj = {};
-        cabecalho.forEach((chave, i) => {
-            if (chave === "conteudos") {
-                obj[chave] = valores[i].split(";");
-            } else {
-                obj[chave] = valores[i];
-            }
-        });
-        return obj;
-    });
+    return obj;
+  });
 }
 
 function criarFiltros() {
-    const todosConteudos = new Set();
+  const set = new Set();
 
-    questoes.forEach(q =>
-        q.conteudos.forEach(c => todosConteudos.add(c))
-    );
+  questoes.forEach(q =>
+    q.conteudos.forEach(c => set.add(c))
+  );
 
-    const container = document.getElementById("filtros-conteudos");
+  const container = document.getElementById("filtros-conteudos");
+  container.innerHTML = "";
 
-    [...todosConteudos].sort().forEach(conteudo => {
-        const label = document.createElement("label");
-        label.innerHTML = `
-            <input type="checkbox" value="${conteudo}">
-            ${conteudo}
-        `;
-        container.appendChild(label);
-    });
+  [...set].sort().forEach(conteudo => {
+    const label = document.createElement("label");
+    label.innerHTML = `
+      <input type="checkbox" value="${conteudo}">
+      ${conteudo}
+    `;
+    container.appendChild(label);
+  });
 
-    container.addEventListener("change", aplicarFiltros);
+  container.addEventListener("change", aplicarFiltros);
 }
 
 function aplicarFiltros() {
-    const selecionados = [...document.querySelectorAll(
-        "#filtros-conteudos input:checked"
-    )].map(i => i.value);
+  const ativos = [...document.querySelectorAll(
+    "#filtros-conteudos input:checked"
+  )].map(i => i.value);
 
-    if (selecionados.length === 0) {
-        renderizar(questoes);
-        return;
-    }
+  if (ativos.length === 0) {
+    renderizar(questoes);
+    return;
+  }
 
-    const filtradas = questoes.filter(q =>
-        selecionados.every(s => q.conteudos.includes(s))
-    );
+  const filtradas = questoes.filter(q =>
+    ativos.every(a => q.conteudos.includes(a))
+  );
 
-    renderizar(filtradas);
+  renderizar(filtradas);
 }
 
 function renderizar(lista) {
-    const div = document.getElementById("lista-questoes");
-    div.innerHTML = "";
+  const div = document.getElementById("lista-questoes");
+  div.innerHTML = "";
 
-    if (lista.length === 0) {
-        div.textContent = "Nenhuma questão encontrada.";
-        return;
-    }
+  if (lista.length === 0) {
+    div.textContent = "Nenhuma questão encontrada.";
+    return;
+  }
 
-    lista.forEach(q => {
-        const el = document.createElement("div");
-        el.className = "questao";
-        el.textContent =
-            `Ano ${q.ano} | Nº ${q.numero} | Conteúdos: ${q.conteudos.join(", ")} | Gabarito: ${q.gabarito}`;
-        div.appendChild(el);
-    });
+  lista.forEach(q => {
+    const el = document.createElement("div");
+    el.className = "questao";
+    el.textContent =
+      `Ano ${q.ano} | Nº ${q.numero} | Conteúdos: ${q.conteudos.join(", ")} | Gabarito: ${q.gabarito}`;
+    div.appendChild(el);
+  });
 }
 </script>
 
 </body>
 </html>
+
