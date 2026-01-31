@@ -198,32 +198,29 @@ fetch("questoes.csv")
 
     function renderizar(lista) {
       container.innerHTML = "";
-
-      if (!lista.length) {
-        container.innerHTML = "<p style='text-align:center'>Nada encontrado.</p>";
-        return;
-      }
-
+    
       lista.forEach(q => {
         const div = document.createElement("div");
         div.className = "questao";
-
-      
-        div.innerHTML = `
-          <h3>${q.ano} – Questão ${q.num}</h3>
-          const img = document.createElement("img");
-          img.src = `imagens/${q.ano}_q${q.num}.png`;
-
-          img.onerror = () => {
-          img.src = `imagens/${q.ano}_q${q.num}.PNG`;
-          };
-
-          div.appendChild(img);
-          <p><strong>Categoria:</strong> ${q.categoria}</p>
+    
+        const titulo = document.createElement("h3");
+        titulo.textContent = `${q.ano} – Questão ${q.num}`;
+    
+        const img = document.createElement("img");
+        const png = `imagens/${q.ano}_${q.num}.png`;
+        const PNG = `imagens/${q.ano}_${q.num}.PNG`;
+    
+        img.onerror = () => img.src = PNG;
+        img.src = png;
+    
+        div.appendChild(titulo);
+        div.appendChild(img);
+        div.innerHTML += `
+          <p><strong>Conteúdos:</strong> ${q.conteudos}</p>
           <p><strong>Gabarito:</strong> ${q.gabarito}</p>
         `;
-
-          container.appendChild(div);
+    
+        container.appendChild(div);
       });
     }
 
@@ -232,6 +229,7 @@ fetch("questoes.csv")
 
 </body>
 </html>
+
 
 
 
