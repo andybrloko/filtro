@@ -132,16 +132,23 @@
 let questoes = [];
 
 // =======================
-// NORMALIZA TEXTO
+// DETECTA CATEGORIA MÃE
 // =======================
-function normalizar(txt) {
-  return txt
-    .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/\(.*?\)/g, "")
-    .replace(/[-–—].*/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+function categoriaPrincipal(texto) {
+  texto = texto.toLowerCase();
+
+  if (texto.includes("estatística")) return "Estatística";
+  if (texto.includes("função afim") || texto.includes("1º grau")) return "Função Afim";
+  if (texto.includes("função quadrática") || texto.includes("2º grau")) return "Função Quadrática";
+  if (texto.includes("trigonometr")) return "Trigonometria";
+  if (texto.includes("geometria analítica")) return "Geometria Analítica";
+  if (texto.includes("geometria espacial")) return "Geometria Espacial";
+  if (texto.includes("probabilidade") || texto.includes("combinatória")) return "Probabilidade";
+  if (texto.includes("escala") || texto.includes("proporção")) return "Escala e Proporção";
+  if (texto.includes("função exponencial")) return "Função Exponencial";
+  if (texto.includes("função logarítmica")) return "Função Logarítmica";
+
+  return "Outros";
 }
 
 fetch("questoes.csv")
@@ -151,69 +158,52 @@ fetch("questoes.csv")
     const container = document.getElementById("container");
     const filtrosDiv = document.getElementById("filtros");
 
-    const mapaFiltros = new Map();
+    const categorias = new Set();
 
     linhas.forEach(linha => {
-      const [ano, num, conteudosRaw, gabarito] = linha.split(";");
-      if (!ano || !num || !conteudosRaw) return;
+      const [ano, num, conteudos, gabarito] = linha.split(";");
+      if (!ano || !num) return;
 
-      const conteudos = conteudosRaw.split("|").map(c => c.trim());
+      const categoria = categoriaPrincipal(conteudos);
+      categorias.add(categoria);
 
-      questoes.push({ ano, num, conteudos, gabarito });
-
-      conteudos.forEach(c => {
-        const chave = normalizar(c);
-        if (!mapaFiltros.has(chave)) {
-          mapaFiltros.set(chave, c);
-        }
-      });
+      questoes.push({ ano, num, conteudos, gabarito, categoria });
     });
 
     // =======================
-    // CRIA FILTROS LIMPOS
+    // FILTROS LIMPOS
     // =======================
-    [...mapaFiltros.entries()]
-      .sort((a, b) => a[1].localeCompare(b[1]))
-      .forEach(([chave, texto]) => {
-        const label = document.createElement("label");
+    [...categorias].sort().forEach(cat => {
+      const label = document.createElement("label");
+      label.className = "filtro";
 
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = chave;
-        checkbox.addEventListener("change", aplicarFiltro);
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = cat;
+      checkbox.addEventListener("change", aplicarFiltro);
 
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(" " + texto));
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(" " + cat));
 
-        filtrosDiv.appendChild(label);
-      });
+      filtrosDiv.appendChild(label);
+    });
 
     renderizar(questoes);
 
-    // =======================
-    // FILTRAGEM
-    // =======================
     function aplicarFiltro() {
-      const selecionados = [...document.querySelectorAll("#filtros input:checked")]
+      const ativos = [...document.querySelectorAll("#filtros input:checked")]
         .map(cb => cb.value);
 
-      if (selecionados.length === 0) {
+      if (ativos.length === 0) {
         renderizar(questoes);
         return;
       }
 
-      const filtradas = questoes.filter(q =>
-        q.conteudos.some(c =>
-          selecionados.includes(normalizar(c))
-        )
+      renderizar(
+        questoes.filter(q => ativos.includes(q.categoria))
       );
-
-      renderizar(filtradas);
     }
 
-    // =======================
-    // RENDER
-    // =======================
     function renderizar(lista) {
       container.innerHTML = "";
 
@@ -223,8 +213,8 @@ fetch("questoes.csv")
 
         div.innerHTML = `
           <h3>${q.ano} – Questão ${q.num}</h3>
-          <img src="imagens/${q.ano}_q${q.num}.png" alt="Questão ${q.num}">
-          <p><strong>Conteúdos:</strong> ${q.conteudos.join(", ")}</p>
+          <img src="imagens/${q.ano}_q${q.num}.png">
+          <p><strong>Categoria:</strong> ${q.categoria}</p>
           <p><strong>Gabarito:</strong> ${q.gabarito}</p>
         `;
 
@@ -233,7 +223,7 @@ fetch("questoes.csv")
     }
   });
 </script>
-
 </body>
 </html>
+
 
