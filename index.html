@@ -7,7 +7,6 @@
 <style>
 body { font-family: Arial; background:#f4f6f8; margin:0; }
 h1,h3 { text-align:center; }
-
 .topo { text-align:center; padding:10px; }
 
 #btnSimulado {
@@ -88,7 +87,7 @@ td,th {
 <body>
 
 <h1>Questões ENEM – Matemática</h1>
-<h1> V1.0 </h1>
+<h1> V1.01</h1>
 
 <div class="topo">
 <button id="btnSimulado">Simulado (10 aleatórias)</button>
@@ -122,6 +121,16 @@ function categoriaPrincipal(t) {
 }
 
 // =====================
+// IMG COM FALLBACK
+// =====================
+function imgQuestaoHTML(q){
+ return `
+ <img loading="lazy" decoding="async"
+  src="imagens/${q.ano}_q${q.num}.webp"
+  onerror="this.onerror=null; this.src='imagens/${q.ano}_q${q.num}.png'">`;
+}
+
+// =====================
 // CSV
 // =====================
 fetch("questoes.csv")
@@ -152,8 +161,6 @@ fetch("questoes.csv")
 });
 
 // =====================
-// CHECKBOXES
-// =====================
 function criarCheckboxes(id,lista){
  const box=document.getElementById(id);
  box.innerHTML="";
@@ -166,8 +173,6 @@ function criarCheckboxes(id,lista){
  });
 }
 
-// =====================
-// FILTROS
 // =====================
 function aplicarFiltros(){
  const cSel=[...document.querySelectorAll("#filtrosConteudo input:checked")].map(x=>x.value);
@@ -183,35 +188,28 @@ function aplicarFiltros(){
 }
 
 // =====================
-// LISTA LEVE (limitada)
-// =====================
 function renderLista(lista){
  const c=document.getElementById("container");
  c.innerHTML="";
 
- if(!lista.length){
-  c.innerHTML="Nada encontrado";
-  return;
- }
+ if(!lista.length){ c.innerHTML="Nada encontrado"; return;}
 
- const limite = 40;
- const parte = lista.slice(0, limite);
+ const parte = lista.slice(0,40);
 
  parte.forEach(q=>{
   c.innerHTML+=`
   <div class="questao">
    <h3>${q.ano} – Questão ${q.num}</h3>
    <p><b>Tema:</b> ${q.categoria}</p>
-   <img loading="lazy" decoding="async"
-        src="imagens/${q.ano}_q${q.num}.webp">
+   ${imgQuestaoHTML(q)}
    <p><b>Gabarito:</b> ${q.gabarito}</p>
   </div>`;
  });
 
- if(lista.length > limite){
-   c.innerHTML += `<p style="text-align:center">
-   Mostrando ${limite} de ${lista.length}
-   </p>`;
+ if(lista.length>40){
+  c.innerHTML += `<p style="text-align:center">
+  Mostrando 40 de ${lista.length}
+  </p>`;
  }
 }
 
@@ -234,10 +232,7 @@ function mostrarQuestaoSimulado(){
   <h3>Questão ${indiceAtual+1} de 10</h3>
   <p><b>${q.ano} – Questão ${q.num}</b></p>
   <p><b>Tema:</b> ${q.categoria}</p>
-
-  <img loading="lazy" decoding="async"
-       src="imagens/${q.ano}_q${q.num}.webp">
-
+  ${imgQuestaoHTML(q)}
   ${["A","B","C","D","E"].map(l=>
     `<button onclick="responder('${l}')">${l}</button>`
   ).join("")}
@@ -257,8 +252,6 @@ function responder(letra){
  else mostrarQuestaoSimulado();
 }
 
-// =====================
-// RESULTADO
 // =====================
 function telaResultado(){
  const c=document.getElementById("container");
@@ -286,10 +279,7 @@ function verQuestao(i){
  <div class="questao">
   <h3>${q.ano} – Questão ${q.num}</h3>
   <p><b>Tema:</b> ${q.categoria}</p>
-
-  <img loading="lazy" decoding="async"
-       src="imagens/${q.ano}_q${q.num}.webp">
-
+  ${imgQuestaoHTML(q)}
   <p>Sua resposta: ${q.resposta}</p>
   <p>Correta: ${q.gabarito}</p>
  </div>`;
