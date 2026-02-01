@@ -8,29 +8,31 @@
     h1, h3 { text-align: center; }
 
     /* Estilo das Abas */
-    .tabs { display: flex; justify-content: center; background: #1976d2; margin-bottom: 20px; }
-    .tab-btn { padding: 15px 25px; cursor: pointer; border: none; background: none; color: white; font-weight: bold; font-size: 16px; outline: none; }
-    .tab-btn.active { background: #125aa0; border-bottom: 4px solid #fff; }
-    .content-section { display: none; }
+    .tabs { display: flex; justify-content: center; background: #1976d2; margin-bottom: 20px; position: sticky; top: 0; z-index: 1000; }
+    .tab-btn { padding: 15px 25px; cursor: pointer; border: none; background: none; color: white; font-weight: bold; font-size: 16px; transition: 0.3s; }
+    .tab-btn:hover { background: #125aa0; }
+    .tab-btn.active { background: #0d47a1; border-bottom: 4px solid #fff; }
+
+    .content-section { display: none; padding: 20px; }
     .content-section.active { display: block; }
 
-    .secao-filtros { margin: 20px; }
+    .secao-filtros { margin: 20px; background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     .filtros { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-    .filtro { background: #fff; padding: 8px 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: pointer; }
-    #pesquisa { width: 240px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; display: block; margin: 0 auto 20px auto; }
-    #container, #simulado-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 20px; }
-
-    .questao { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
-    .questao img { max-width: 100%; border-radius: 8px; margin: 10px 0; }
-
-    /* Estilo do Simulado */
-    .area-resposta { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; }
-    .input-resposta { width: 50px; padding: 5px; text-transform: uppercase; text-align: center; font-weight: bold; }
-    .resultado-final { text-align: center; background: #fff; margin: 20px; padding: 20px; border-radius: 12px; font-size: 1.2em; display: none; }
+    .filtro { background: #f0f2f5; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; display: flex; align-items: center; gap: 5px; }
     
-    .gabarito { filter: blur(6px); transition: filter 0.3s ease; user-select: none; }
+    #pesquisa { width: 90%; max-width: 400px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; display: block; margin: 0 auto 20px auto; }
+    #container, #simulado-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+    .questao { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+    .questao img { max-width: 100%; border-radius: 8px; margin: 10px 0; align-self: center; }
+
+    .area-resposta { margin-top: auto; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; }
+    .input-resposta { width: 60px; padding: 8px; text-transform: uppercase; text-align: center; font-weight: bold; border: 2px solid #1976d2; border-radius: 4px; }
+    .resultado-final { text-align: center; background: #e3f2fd; margin: 20px auto; padding: 20px; border-radius: 12px; font-size: 1.3em; display: none; max-width: 600px; border: 2px solid #1976d2; }
+    
+    .gabarito { filter: blur(6px); transition: filter 0.3s ease; user-select: none; margin: 10px 0; background: #f9f9f9; padding: 5px; border-radius: 4px; }
     .gabarito.mostrar { filter: none; }
-    .btn-gabarito, .btn-acao { margin-top: 8px; padding: 10px 20px; border: none; border-radius: 6px; background: #1976d2; color: #fff; cursor: pointer; }
+    .btn-gabarito, .btn-acao { padding: 10px 20px; border: none; border-radius: 6px; background: #1976d2; color: #fff; cursor: pointer; font-weight: bold; }
     .btn-acao { display: block; margin: 20px auto; font-size: 1.1em; }
     .btn-gabarito:hover, .btn-acao:hover { background: #125aa0; }
   </style>
@@ -38,44 +40,49 @@
 <body>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="mudarAba('estudo')">Estudo Livre</button>
-  <button class="tab-btn" onclick="mudarAba('simulado')">Simulado (10 questões)</button>
+  <button class="tab-btn active" onclick="mudarAba(event, 'estudo')">Estudo Livre</button>
+  <button class="tab-btn" onclick="mudarAba(event, 'simulado')">Simulado (10 questões)</button>
 </div>
 
 <div id="aba-estudo" class="content-section active">
   <h1>Questões de Matemática – ENEM</h1>
-  <input type="text" id="pesquisa" placeholder="Pesquisar: ex 2018 45 ou 2012">
+  <input type="text" id="pesquisa" placeholder="Pesquisar por ano ou número (ex: 2022 140)">
+  
   <div class="secao-filtros">
     <h3>Filtrar por conteúdo</h3>
     <div id="filtrosConteudo" class="filtros"></div>
   </div>
+
   <div class="secao-filtros">
     <h3>Filtrar por ano</h3>
     <div id="filtrosAno" class="filtros"></div>
   </div>
+
   <div id="container"></div>
 </div>
 
 <div id="aba-simulado" class="content-section">
   <h1>Simulado Aleatório</h1>
-  <button class="btn-acao" onclick="gerarSimulado()">Gerar Novo Simulado de 10 Questões</button>
+  <p style="text-align: center;">Escolheremos 10 questões aleatórias para você resolver.</p>
+  <button class="btn-acao" onclick="gerarSimulado()">Gerar Novo Simulado</button>
   <div id="simulado-container"></div>
   <div id="resultado" class="resultado-final"></div>
   <button id="btn-corrigir" class="btn-acao" style="display:none;" onclick="corrigirSimulado()">Corrigir Simulado</button>
 </div>
 
 <script>
-let questoes = [];
+let todasQuestoes = [];
 let questoesSimulado = [];
 
 function categoriaPrincipal(texto) {
+  if (!texto) return "Outros";
   texto = texto.toLowerCase();
   if (texto.includes("estatística")) return "Estatística";
-  if (texto.includes("função afim") || texto.includes("1º grau")) return "Função Afim";
-  if (texto.includes("função quadrática") || texto.includes("2º grau")) return "Função Quadrática";
+  if (texto.includes("afim") || texto.includes("1º grau")) return "Função Afim";
+  if (texto.includes("quadrática") || texto.includes("2º grau")) return "Função Quadrática";
   if (texto.includes("trigonometr")) return "Trigonometria";
-  if (texto.includes("geometria analítica")) return "Geometria Analítica";
-  if (texto.includes("geometria espacial")) return "Geometria Espacial";
+  if (texto.includes("analítica")) return "Geometria Analítica";
+  if (texto.includes("espacial")) return "Geometria Espacial";
   if (texto.includes("probabilidade") || texto.includes("combinatória")) return "Probabilidade";
   if (texto.includes("escala") || texto.includes("proporção")) return "Escala e Proporção";
   if (texto.includes("exponencial")) return "Função Exponencial";
@@ -83,66 +90,165 @@ function categoriaPrincipal(texto) {
   return "Outros";
 }
 
-function mudarAba(aba) {
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('aba-' + aba).classList.add('active');
-  event.currentTarget.classList.add('active');
+function mudarAba(event, abaNome) {
+  // Esconde todas as seções
+  const secoes = document.getElementsByClassName("content-section");
+  for (let i = 0; i < secoes.length; i++) {
+    secoes[i].classList.remove("active");
+  }
+  // Remove classe active dos botões
+  const botoes = document.getElementsByClassName("tab-btn");
+  for (let i = 0; i < botoes.length; i++) {
+    botoes[i].classList.remove("active");
+  }
+  // Mostra a seção atual e ativa o botão
+  document.getElementById("aba-" + abaNome).classList.add("active");
+  event.currentTarget.classList.add("active");
 }
 
 fetch("questoes.csv")
   .then(r => r.text())
   .then(csv => {
     const linhas = csv.trim().split("\n").slice(1);
-    const filtrosConteudo = document.getElementById("filtrosConteudo");
-    const filtrosAno = document.getElementById("filtrosAno");
     const categorias = new Set();
     const anos = new Set();
 
     linhas.forEach(linha => {
-      const [ano, num, conteudos, gabarito] = linha.split(";");
-      if (!ano || !num) return;
+      const colunas = linha.split(";");
+      if (colunas.length < 4) return;
+      
+      const ano = colunas[0].trim();
+      const num = colunas[1].trim();
+      const conteudos = colunas[2].trim();
+      const gabarito = colunas[3].trim().toUpperCase();
       const categoria = categoriaPrincipal(conteudos);
-      questoes.push({ ano, num, conteudos, gabarito: gabarito.trim().toUpperCase(), categoria });
+
+      todasQuestoes.push({ ano, num, conteudos, gabarito, categoria });
       categorias.add(categoria);
       anos.add(ano);
     });
 
-    [...categorias].sort().forEach(c => filtrosConteudo.appendChild(criarCheckbox(c)));
-    [...anos].sort((a,b) => b - a).forEach(a => filtrosAno.appendChild(criarCheckbox(a)));
+    // Criar Filtros
+    const filtrosConteudo = document.getElementById("filtrosConteudo");
+    const filtrosAno = document.getElementById("filtrosAno");
 
-    document.getElementById("pesquisa").addEventListener("input", e => aplicarFiltros(e.target.value.toLowerCase()));
-    renderizar(questoes, document.getElementById("container"), true);
+    [...categorias].sort().forEach(c => filtrosConteudo.appendChild(criarCheckbox(c, 'categoria')));
+    [...anos].sort((a,b) => b - a).forEach(a => filtrosAno.appendChild(criarCheckbox(a, 'ano')));
+
+    document.getElementById("pesquisa").addEventListener("input", aplicarFiltros);
+
+    renderizarEstudo(todasQuestoes);
   });
 
-function criarCheckbox(valor) {
+function criarCheckbox(valor, tipo) {
   const label = document.createElement("label");
   label.className = "filtro";
   const cb = document.createElement("input");
   cb.type = "checkbox";
   cb.value = valor;
-  cb.addEventListener("change", () => aplicarFiltros(document.getElementById("pesquisa").value.toLowerCase()));
+  cb.dataset.tipo = tipo;
+  cb.addEventListener("change", aplicarFiltros);
   label.appendChild(cb);
   label.appendChild(document.createTextNode(" " + valor));
   return label;
 }
 
-function aplicarFiltros(termo) {
-  const cSel = [...document.querySelectorAll("#filtrosConteudo input:checked")].map(x => x.value);
-  const aSel = [...document.querySelectorAll("#filtrosAno input:checked")].map(x => x.value);
-  const filtradas = questoes.filter(q =>
+function aplicarFiltros() {
+  const termo = document.getElementById("pesquisa").value.toLowerCase();
+  const cSel = [...document.querySelectorAll("input[data-tipo='categoria']:checked")].map(x => x.value);
+  const aSel = [...document.querySelectorAll("input[data-tipo='ano']:checked")].map(x => x.value);
+
+  const filtradas = todasQuestoes.filter(q =>
     (cSel.length === 0 || cSel.includes(q.categoria)) &&
     (aSel.length === 0 || aSel.includes(q.ano)) &&
     (termo === "" || (`${q.ano} ${q.num}`).toLowerCase().includes(termo))
   );
-  renderizar(filtradas, document.getElementById("container"), true);
+
+  renderizarEstudo(filtradas);
 }
 
-function renderizar(lista, container, modoEstudo) {
+function renderizarEstudo(lista) {
+  const container = document.getElementById("container");
   container.innerHTML = "";
-  lista.forEach((q, index) => {
+  
+  if (lista.length === 0) {
+    container.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>Nenhuma questão encontrada.</p>";
+    return;
+  }
+
+  lista.forEach((q, i) => {
     const div = document.createElement("div");
     div.className = "questao";
     div.innerHTML = `
       <h3>${q.ano} – Questão ${q.num}</h3>
-      <p>
+      <p><strong>Tipo:</strong> ${q.categoria}</p>
+      <img src="imagens/${q.ano}_q${q.num}.png" onerror="this.onerror=null; this.src='imagens/${q.ano}_q${q.num}.PNG';">
+      <p class="gabarito" id="gab_estudo_${i}"><strong>Gabarito:</strong> ${q.gabarito}</p>
+      <button class="btn-gabarito" onclick="document.getElementById('gab_estudo_${i}').classList.add('mostrar'); this.style.display='none'">Mostrar gabarito</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function gerarSimulado() {
+  if (todasQuestoes.length < 10) {
+    alert("Não há questões suficientes para o simulado.");
+    return;
+  }
+  
+  // Limpa resultados anteriores
+  document.getElementById("resultado").style.display = "none";
+  
+  // Sorteia 10 questões
+  questoesSimulado = [...todasQuestoes].sort(() => 0.5 - Math.random()).slice(0, 10);
+  
+  const container = document.getElementById("simulado-container");
+  container.innerHTML = "";
+  
+  questoesSimulado.forEach((q, i) => {
+    const div = document.createElement("div");
+    div.className = "questao";
+    div.innerHTML = `
+      <h3>Questão ${i+1} (${q.ano})</h3>
+      <p><strong>Tipo:</strong> ${q.categoria}</p>
+      <img src="imagens/${q.ano}_q${q.num}.png" onerror="this.onerror=null; this.src='imagens/${q.ano}_q${q.num}.PNG';">
+      <div class="area-resposta">
+        <label>Sua resposta: </label>
+        <input type="text" maxlength="1" class="input-resposta" id="resp_simu_${i}" placeholder="?">
+        <div id="fb_simu_${i}" style="margin-top:10px; font-weight:bold;"></div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  document.getElementById("btn-corrigir").style.display = "block";
+}
+
+function corrigirSimulado() {
+  let acertos = 0;
+  questoesSimulado.forEach((q, i) => {
+    const input = document.getElementById(`resp_simu_${i}`);
+    const feedback = document.getElementById(`fb_simu_${i}`);
+    const respostaUser = input.value.toUpperCase().trim();
+    
+    if (respostaUser === q.gabarito) {
+      acertos++;
+      feedback.innerHTML = "✅ Correto!";
+      feedback.style.color = "green";
+    } else {
+      feedback.innerHTML = `❌ Errado! Gabarito: ${q.gabarito}`;
+      feedback.style.color = "red";
+    }
+    input.disabled = true;
+  });
+
+  const resDiv = document.getElementById("resultado");
+  resDiv.style.display = "block";
+  resDiv.innerHTML = `<strong>Placar Final:</strong> Você acertou ${acertos} de 10 questões!`;
+  document.getElementById("btn-corrigir").style.display = "none";
+  window.scrollTo(0, document.body.scrollHeight);
+}
+</script>
+
+</body>
+</html>
