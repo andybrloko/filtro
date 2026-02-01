@@ -5,109 +5,100 @@
 <title>Questões ENEM Matemática</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  margin: 0;
-}
+body { font-family: Arial; background:#f4f6f8; margin:0; }
 
-h1, h3 { text-align: center; }
+h1,h3 { text-align:center; }
 
-.topo {
-  text-align:center;
-  padding: 10px;
-}
-
-button {
-  cursor: pointer;
-}
+.topo { text-align:center; padding:10px; }
 
 #btnSimulado {
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  background: #2e7d32;
-  color: #fff;
-  font-weight: bold;
+  padding:10px 16px;
+  border:none;
+  border-radius:8px;
+  background:#2e7d32;
+  color:white;
+  font-weight:bold;
 }
-
-#btnSimulado:hover { background:#1b5e20; }
 
 #pesquisa {
-  width: 240px;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  display: block;
-  margin: 10px auto 20px auto;
-}
-
-.filtros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-}
-
-.filtro {
-  background: #fff;
-  padding: 8px 12px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-#container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-  padding: 20px;
-}
-
-.questao {
-  background: #fff;
-  padding: 15px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.questao img {
-  max-width: 100%;
-  border-radius: 8px;
-  margin: 10px 0;
-}
-
-.opcoes button {
-  display:block;
-  width:100%;
-  margin:4px 0;
+  width:240px;
   padding:8px;
   border-radius:6px;
   border:1px solid #ccc;
-  background:#fafafa;
+  display:block;
+  margin:10px auto;
 }
 
-.resultado {
-  text-align:center;
-  font-size:20px;
-  font-weight:bold;
-  margin:20px;
+.filtros {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:10px;
 }
+
+.filtro {
+  background:white;
+  padding:6px 10px;
+  border-radius:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+#container {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:20px;
+  padding:20px;
+}
+
+.questao {
+  background:white;
+  padding:15px;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
+
+.questao img {
+  max-width:100%;
+  border-radius:8px;
+}
+
+.opcoes button {
+  width:100%;
+  margin:4px 0;
+  padding:8px;
+}
+
+table {
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+}
+
+td,th {
+  border:1px solid #ccc;
+  padding:8px;
+  text-align:center;
+}
+
+.acerto { background:#c8e6c9; }
+.erro { background:#ffcdd2; }
 </style>
 </head>
 
 <body>
 
-<h1>Questões de Matemática – ENEM</h1>
+<h1>Questões ENEM – Matemática</h1>
 <h3> > By Andy and Bruno < </h3>
 
 <div class="topo">
-  <button id="btnSimulado">🎲 Simulado (10 aleatórias)</button>
+<button id="btnSimulado">Simulado (10 aleatórias)</button>
 </div>
 
-<input type="text" id="pesquisa" placeholder="Pesquisar: ex 2018 45">
+<input id="pesquisa" placeholder="Pesquisar ano ou número">
 
-<div class="filtros" id="filtrosConteudo"></div>
-<div class="filtros" id="filtrosAno"></div>
+<div id="filtrosConteudo" class="filtros"></div>
+<div id="filtrosAno" class="filtros"></div>
 
 <div id="container"></div>
 
@@ -115,118 +106,168 @@ button {
 let questoes = [];
 let termoPesquisa = "";
 let simulado = [];
+let respostasSimulado = [];
 let indiceAtual = 0;
-let acertos = 0;
 
-// =======================
+// =====================
 // CATEGORIA
-// =======================
-function categoriaPrincipal(texto) {
-  texto = texto.toLowerCase();
-  if (texto.includes("estatística")) return "Estatística";
-  if (texto.includes("função")) return "Funções";
-  if (texto.includes("trigonometr")) return "Trigonometria";
-  if (texto.includes("geometria")) return "Geometria";
-  if (texto.includes("probabilidade")) return "Probabilidade";
-  return "Outros";
+// =====================
+function categoriaPrincipal(t) {
+ t=t.toLowerCase();
+ if(t.includes("estat")) return "Estatística";
+ if(t.includes("função")) return "Funções";
+ if(t.includes("trig")) return "Trigonometria";
+ if(t.includes("geo")) return "Geometria";
+ if(t.includes("prob")) return "Probabilidade";
+ return "Outros";
 }
 
-// =======================
+// =====================
 // CSV
-// =======================
+// =====================
 fetch("questoes.csv")
-.then(r => r.text())
-.then(csv => {
-  const linhas = csv.trim().split("\n").slice(1);
+.then(r=>r.text())
+.then(csv=>{
+ const linhas = csv.trim().split("\n").slice(1);
 
-  const cats = new Set();
-  const anos = new Set();
+ const cats=new Set();
+ const anos=new Set();
 
-  linhas.forEach(l => {
-    const [ano,num,conteudos,gabarito] = l.split(";");
-    const categoria = categoriaPrincipal(conteudos);
-    questoes.push({ano,num,conteudos,gabarito,categoria});
-    cats.add(categoria);
-    anos.add(ano);
-  });
+ linhas.forEach(l=>{
+  const [ano,num,conteudos,gabarito]=l.split(";");
+  const categoria=categoriaPrincipal(conteudos);
+  questoes.push({ano,num,conteudos,gabarito,categoria});
+  cats.add(categoria);
+  anos.add(ano);
+ });
 
-  renderizar(questoes);
+ criarCheckboxes("filtrosConteudo",[...cats].sort());
+ criarCheckboxes("filtrosAno",[...anos].sort((a,b)=>b-a));
 
-  document.getElementById("btnSimulado").onclick = iniciarSimulado;
+ document.getElementById("pesquisa").oninput=e=>{
+  termoPesquisa=e.target.value.toLowerCase();
+  aplicarFiltros();
+ };
+
+ aplicarFiltros();
 });
 
-// =======================
-// LISTAGEM NORMAL
-// =======================
-function renderizar(lista) {
-  const c = document.getElementById("container");
-  c.innerHTML = "";
-
-  lista.forEach(q => {
-    c.innerHTML += `
-      <div class="questao">
-        <h3>${q.ano} – Questão ${q.num}</h3>
-        <img src="imagens/${q.ano}_q${q.num}.png">
-        <p><b>Categoria:</b> ${q.categoria}</p>
-        <p><b>Gabarito:</b> ${q.gabarito}</p>
-      </div>`;
-  });
+function criarCheckboxes(id,lista){
+ const box=document.getElementById(id);
+ lista.forEach(v=>{
+  const label=document.createElement("label");
+  label.className="filtro";
+  label.innerHTML=`<input type=checkbox value="${v}"> ${v}`;
+  label.querySelector("input").onchange=aplicarFiltros;
+  box.appendChild(label);
+ });
 }
 
-// =======================
-// SIMULADO
-// =======================
-function iniciarSimulado() {
-  simulado = [...questoes]
-    .sort(() => Math.random() - 0.5)
-    .slice(0,10);
+// =====================
+// FILTROS
+// =====================
+function aplicarFiltros(){
+ const cSel=[...document.querySelectorAll("#filtrosConteudo input:checked")].map(x=>x.value);
+ const aSel=[...document.querySelectorAll("#filtrosAno input:checked")].map(x=>x.value);
 
-  indiceAtual = 0;
-  acertos = 0;
-  mostrarQuestaoSimulado();
+ const lista=questoes.filter(q=>
+  (cSel.length==0||cSel.includes(q.categoria)) &&
+  (aSel.length==0||aSel.includes(q.ano)) &&
+  (`${q.ano} ${q.num}`.toLowerCase().includes(termoPesquisa))
+ );
+
+ renderLista(lista);
 }
 
-function mostrarQuestaoSimulado() {
-  const q = simulado[indiceAtual];
-  const c = document.getElementById("container");
+function renderLista(lista){
+ const c=document.getElementById("container");
+ c.innerHTML="";
+ if(!lista.length){ c.innerHTML="Nada encontrado"; return;}
 
-  c.innerHTML = `
+ lista.forEach(q=>{
+  c.innerHTML+=`
   <div class="questao">
-    <h3>Questão ${indiceAtual+1} de 10</h3>
-    <p><b>${q.ano} – Questão ${q.num}</b></p>
-    <p><b>Categoria:</b> ${q.categoria}</p>
-
-    <img src="imagens/${q.ano}_q${q.num}.png">
-
-    <div class="opcoes">
-      ${["A","B","C","D","E"].map(l =>
-        `<button onclick="responder('${l}')">${l}</button>`
-      ).join("")}
-    </div>
+   <h3>${q.ano} – Questão ${q.num}</h3>
+   <p><b>Tema:</b> ${q.categoria}</p>
+   <img src="imagens/${q.ano}_q${q.num}.png">
+   <p><b>Gabarito:</b> ${q.gabarito}</p>
   </div>`;
+ });
 }
 
-function responder(letra) {
-  const q = simulado[indiceAtual];
-  if (letra === q.gabarito.trim()) acertos++;
+// =====================
+// SIMULADO
+// =====================
+document.getElementById("btnSimulado").onclick=()=>{
+ simulado=[...questoes].sort(()=>Math.random()-0.5).slice(0,10);
+ respostasSimulado=[];
+ indiceAtual=0;
+ mostrarQuestaoSimulado();
+};
 
-  indiceAtual++;
+function mostrarQuestaoSimulado(){
+ const q=simulado[indiceAtual];
+ const c=document.getElementById("container");
 
-  if (indiceAtual >= simulado.length) {
-    mostrarResultado();
-  } else {
-    mostrarQuestaoSimulado();
-  }
+ c.innerHTML=`
+ <div class="questao">
+  <h3>Questão ${indiceAtual+1} de 10</h3>
+  <p><b>${q.ano} – Questão ${q.num}</b></p>
+  <p><b>Tema:</b> ${q.categoria}</p>
+  <img src="imagens/${q.ano}_q${q.num}.png">
+  ${["A","B","C","D","E"].map(l=>
+    `<button onclick="responder('${l}')">${l}</button>`
+  ).join("")}
+ </div>`;
 }
 
-function mostrarResultado() {
-  document.getElementById("container").innerHTML =
-    `<div class="resultado">
-      Você acertou ${acertos} de 10 questões
-     </div>`;
+function responder(letra){
+ const q=simulado[indiceAtual];
+ respostasSimulado.push({
+  ...q,
+  resposta:letra,
+  correto:letra.trim()==q.gabarito.trim()
+ });
+
+ indiceAtual++;
+ if(indiceAtual>=10) telaResultado();
+ else mostrarQuestaoSimulado();
+}
+
+// =====================
+// RESULTADO + TABELA
+// =====================
+function telaResultado(){
+ const c=document.getElementById("container");
+ const acertos=respostasSimulado.filter(x=>x.correto).length;
+
+ c.innerHTML=`<h3>Resultado: ${acertos} / 10</h3>
+ <table>
+ <tr><th>Questão</th><th>Tema</th><th>Sua resp</th><th>Certa</th><th></th></tr>
+ ${respostasSimulado.map((r,i)=>`
+  <tr class="${r.correto?'acerto':'erro'}">
+   <td>${r.ano}-${r.num}</td>
+   <td>${r.categoria}</td>
+   <td>${r.resposta}</td>
+   <td>${r.gabarito}</td>
+   <td><button onclick="verQuestao(${i})">Ver</button></td>
+  </tr>`).join("")}
+ </table>`;
+}
+
+function verQuestao(i){
+ const q=respostasSimulado[i];
+ const c=document.getElementById("container");
+ c.innerHTML=`
+ <div class="questao">
+  <h3>${q.ano} – Questão ${q.num}</h3>
+  <p><b>Tema:</b> ${q.categoria}</p>
+  <img src="imagens/${q.ano}_q${q.num}.png">
+  <p>Sua resposta: ${q.resposta}</p>
+  <p>Correta: ${q.gabarito}</p>
+ </div>`;
 }
 </script>
 
 </body>
 </html>
-
