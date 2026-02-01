@@ -138,7 +138,15 @@ function imgQuestaoHTML(q){
  return `
  <img loading="lazy" decoding="async"
   src="imagens/${q.ano}_q${q.num}.webp"
-  onerror="this.onerror=null; this.src='imagens/${q.ano}_q${q.num}.png'">`;
+  onerror="
+    if(!this.dataset.f1){
+      this.dataset.f1=1;
+      this.src='imagens/${q.ano}_q${q.num}.png';
+    } else if(!this.dataset.f2){
+      this.dataset.f2=1;
+      this.src='imagens/${q.ano}_q${q.num}.PNG';
+    }
+  ">`;
 }
 
 // =====================
@@ -299,4 +307,5 @@ function verQuestao(i){
 
 </body>
 </html>
+
 
