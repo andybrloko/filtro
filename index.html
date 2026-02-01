@@ -8,8 +8,8 @@
     h1, h3 { text-align: center; }
 
     /* Estilo das Abas */
-    .tabs { display: flex; justify-content: center; background: #1976d2; margin-bottom: 20px; position: sticky; top: 0; z-index: 1000; }
-    .tab-btn { padding: 15px 25px; cursor: pointer; border: none; background: none; color: white; font-weight: bold; font-size: 16px; transition: 0.3s; }
+    .tabs { display: flex; justify-content: center; background: #1976d2; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    .tab-btn { padding: 15px 25px; cursor: pointer; border: none; background: none; color: white; font-weight: bold; font-size: 16px; outline: none; }
     .tab-btn:hover { background: #125aa0; }
     .tab-btn.active { background: #0d47a1; border-bottom: 4px solid #fff; }
 
@@ -18,7 +18,7 @@
 
     .secao-filtros { margin: 20px; background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     .filtros { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-    .filtro { background: #f0f2f5; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; display: flex; align-items: center; gap: 5px; }
+    .filtro { background: #f0f2f5; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; font-size: 14px; }
     
     #pesquisa { width: 90%; max-width: 400px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; display: block; margin: 0 auto 20px auto; }
     #container, #simulado-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
@@ -26,22 +26,23 @@
     .questao { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
     .questao img { max-width: 100%; border-radius: 8px; margin: 10px 0; align-self: center; }
 
-    .area-resposta { margin-top: auto; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; }
-    .input-resposta { width: 60px; padding: 8px; text-transform: uppercase; text-align: center; font-weight: bold; border: 2px solid #1976d2; border-radius: 4px; }
-    .resultado-final { text-align: center; background: #e3f2fd; margin: 20px auto; padding: 20px; border-radius: 12px; font-size: 1.3em; display: none; max-width: 600px; border: 2px solid #1976d2; }
-    
     .gabarito { filter: blur(6px); transition: filter 0.3s ease; user-select: none; margin: 10px 0; background: #f9f9f9; padding: 5px; border-radius: 4px; }
     .gabarito.mostrar { filter: none; }
-    .btn-gabarito, .btn-acao { padding: 10px 20px; border: none; border-radius: 6px; background: #1976d2; color: #fff; cursor: pointer; font-weight: bold; }
-    .btn-acao { display: block; margin: 20px auto; font-size: 1.1em; }
-    .btn-gabarito:hover, .btn-acao:hover { background: #125aa0; }
+    
+    .area-resposta { margin-top: auto; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; }
+    .input-resposta { width: 60px; padding: 8px; text-transform: uppercase; text-align: center; font-weight: bold; border: 2px solid #1976d2; border-radius: 4px; }
+    
+    .btn-acao, .btn-gabarito { padding: 10px 20px; border: none; border-radius: 6px; background: #1976d2; color: #fff; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    .btn-acao:hover { background: #125aa0; }
+    
+    .resultado-final { text-align: center; background: #e3f2fd; margin: 20px auto; padding: 20px; border-radius: 12px; font-size: 1.3em; display: none; max-width: 600px; border: 2px solid #1976d2; }
   </style>
 </head>
 <body>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="mudarAba(event, 'estudo')">Estudo Livre</button>
-  <button class="tab-btn" onclick="mudarAba(event, 'simulado')">Simulado (10 questões)</button>
+  <button class="tab-btn active" data-aba="estudo">Estudo Livre</button>
+  <button class="tab-btn" data-aba="simulado">Simulado (10 questões)</button>
 </div>
 
 <div id="aba-estudo" class="content-section active">
@@ -63,17 +64,34 @@
 
 <div id="aba-simulado" class="content-section">
   <h1>Simulado Aleatório</h1>
-  <p style="text-align: center;">Escolheremos 10 questões aleatórias para você resolver.</p>
-  <button class="btn-acao" onclick="gerarSimulado()">Gerar Novo Simulado</button>
+  <p style="text-align: center;">Escolheremos 10 questões aleatórias para você responder.</p>
+  <button class="btn-acao" style="display: block; margin: 0 auto;" onclick="gerarSimulado()">Gerar Novo Simulado</button>
+  
   <div id="simulado-container"></div>
+  
   <div id="resultado" class="resultado-final"></div>
-  <button id="btn-corrigir" class="btn-acao" style="display:none;" onclick="corrigirSimulado()">Corrigir Simulado</button>
+  <button id="btn-corrigir" class="btn-acao" style="display:none; margin: 20px auto;" onclick="corrigirSimulado()">Corrigir Simulado</button>
 </div>
 
 <script>
 let todasQuestoes = [];
 let questoesSimulado = [];
 
+// 1. GERENCIAMENTO DE ABAS
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    // Remove active de tudo
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    
+    // Ativa a clicada
+    btn.classList.add('active');
+    const abaId = 'aba-' + btn.getAttribute('data-aba');
+    document.getElementById(abaId).classList.add('active');
+  });
+});
+
+// 2. LÓGICA DE CATEGORIAS
 function categoriaPrincipal(texto) {
   if (!texto) return "Outros";
   texto = texto.toLowerCase();
@@ -90,22 +108,7 @@ function categoriaPrincipal(texto) {
   return "Outros";
 }
 
-function mudarAba(event, abaNome) {
-  // Esconde todas as seções
-  const secoes = document.getElementsByClassName("content-section");
-  for (let i = 0; i < secoes.length; i++) {
-    secoes[i].classList.remove("active");
-  }
-  // Remove classe active dos botões
-  const botoes = document.getElementsByClassName("tab-btn");
-  for (let i = 0; i < botoes.length; i++) {
-    botoes[i].classList.remove("active");
-  }
-  // Mostra a seção atual e ativa o botão
-  document.getElementById("aba-" + abaNome).classList.add("active");
-  event.currentTarget.classList.add("active");
-}
-
+// 3. CARREGAR DADOS
 fetch("questoes.csv")
   .then(r => r.text())
   .then(csv => {
@@ -117,28 +120,33 @@ fetch("questoes.csv")
       const colunas = linha.split(";");
       if (colunas.length < 4) return;
       
-      const ano = colunas[0].trim();
-      const num = colunas[1].trim();
-      const conteudos = colunas[2].trim();
-      const gabarito = colunas[3].trim().toUpperCase();
-      const categoria = categoriaPrincipal(conteudos);
+      const q = {
+        ano: colunas[0].trim(),
+        num: colunas[1].trim(),
+        conteudos: colunas[2].trim(),
+        gabarito: colunas[3].trim().toUpperCase(),
+        categoria: categoriaPrincipal(colunas[2])
+      };
 
-      todasQuestoes.push({ ano, num, conteudos, gabarito, categoria });
-      categorias.add(categoria);
-      anos.add(ano);
+      todasQuestoes.push(q);
+      categorias.add(q.categoria);
+      anos.add(q.ano);
     });
 
-    // Criar Filtros
-    const filtrosConteudo = document.getElementById("filtrosConteudo");
-    const filtrosAno = document.getElementById("filtrosAno");
+    // Criar filtros na tela
+    const fConteudo = document.getElementById("filtrosConteudo");
+    const fAno = document.getElementById("filtrosAno");
 
-    [...categorias].sort().forEach(c => filtrosConteudo.appendChild(criarCheckbox(c, 'categoria')));
-    [...anos].sort((a,b) => b - a).forEach(a => filtrosAno.appendChild(criarCheckbox(a, 'ano')));
+    [...categorias].sort().forEach(c => fConteudo.appendChild(criarCheckbox(c, 'categoria')));
+    [...anos].sort((a,b) => b - a).forEach(a => fAno.appendChild(criarCheckbox(a, 'ano')));
 
+    // Evento de pesquisa
     document.getElementById("pesquisa").addEventListener("input", aplicarFiltros);
 
+    // Renderiza a lista inicial
     renderizarEstudo(todasQuestoes);
-  });
+  })
+  .catch(err => console.error("Erro ao carregar CSV:", err));
 
 function criarCheckbox(valor, tipo) {
   const label = document.createElement("label");
@@ -171,11 +179,6 @@ function renderizarEstudo(lista) {
   const container = document.getElementById("container");
   container.innerHTML = "";
   
-  if (lista.length === 0) {
-    container.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>Nenhuma questão encontrada.</p>";
-    return;
-  }
-
   lista.forEach((q, i) => {
     const div = document.createElement("div");
     div.className = "questao";
@@ -190,16 +193,14 @@ function renderizarEstudo(lista) {
   });
 }
 
+// 4. LÓGICA DO SIMULADO
 function gerarSimulado() {
-  if (todasQuestoes.length < 10) {
-    alert("Não há questões suficientes para o simulado.");
+  if (todasQuestoes.length < 1) {
+    alert("Dados ainda carregando ou CSV vazio!");
     return;
   }
   
-  // Limpa resultados anteriores
   document.getElementById("resultado").style.display = "none";
-  
-  // Sorteia 10 questões
   questoesSimulado = [...todasQuestoes].sort(() => 0.5 - Math.random()).slice(0, 10);
   
   const container = document.getElementById("simulado-container");
@@ -214,7 +215,7 @@ function gerarSimulado() {
       <img src="imagens/${q.ano}_q${q.num}.png" onerror="this.onerror=null; this.src='imagens/${q.ano}_q${q.num}.PNG';">
       <div class="area-resposta">
         <label>Sua resposta: </label>
-        <input type="text" maxlength="1" class="input-resposta" id="resp_simu_${i}" placeholder="?">
+        <input type="text" maxlength="1" class="input-resposta" id="resp_simu_${i}">
         <div id="fb_simu_${i}" style="margin-top:10px; font-weight:bold;"></div>
       </div>
     `;
@@ -222,6 +223,7 @@ function gerarSimulado() {
   });
 
   document.getElementById("btn-corrigir").style.display = "block";
+  window.scrollTo(0, 0);
 }
 
 function corrigirSimulado() {
@@ -229,9 +231,9 @@ function corrigirSimulado() {
   questoesSimulado.forEach((q, i) => {
     const input = document.getElementById(`resp_simu_${i}`);
     const feedback = document.getElementById(`fb_simu_${i}`);
-    const respostaUser = input.value.toUpperCase().trim();
+    const resUser = input.value.toUpperCase().trim();
     
-    if (respostaUser === q.gabarito) {
+    if (resUser === q.gabarito) {
       acertos++;
       feedback.innerHTML = "✅ Correto!";
       feedback.style.color = "green";
@@ -244,9 +246,8 @@ function corrigirSimulado() {
 
   const resDiv = document.getElementById("resultado");
   resDiv.style.display = "block";
-  resDiv.innerHTML = `<strong>Placar Final:</strong> Você acertou ${acertos} de 10 questões!`;
+  resDiv.innerHTML = `<strong>Fim!</strong> Você acertou ${acertos} de 10 questões.`;
   document.getElementById("btn-corrigir").style.display = "none";
-  window.scrollTo(0, document.body.scrollHeight);
 }
 </script>
 
