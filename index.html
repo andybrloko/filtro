@@ -3,122 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <title>Questões ENEM Matemática</title>
-  <link rel="icon" href="favicon.png" type="image/png">
-
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-    }
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding-bottom: 50px; }
+    h1, h3 { text-align: center; }
 
-    h1, h3 {
-      text-align: center;
-    }
+    /* Estilo das Abas */
+    .tabs { display: flex; justify-content: center; background: #1976d2; margin-bottom: 20px; }
+    .tab-btn { padding: 15px 25px; cursor: pointer; border: none; background: none; color: white; font-weight: bold; font-size: 16px; outline: none; }
+    .tab-btn.active { background: #125aa0; border-bottom: 4px solid #fff; }
+    .content-section { display: none; }
+    .content-section.active { display: block; }
 
-    .secao-filtros {
-      margin: 20px;
-    }
+    .secao-filtros { margin: 20px; }
+    .filtros { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .filtro { background: #fff; padding: 8px 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: pointer; }
+    #pesquisa { width: 240px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; display: block; margin: 0 auto 20px auto; }
+    #container, #simulado-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 20px; }
 
-    .filtros {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-    }
+    .questao { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
+    .questao img { max-width: 100%; border-radius: 8px; margin: 10px 0; }
 
-    .filtro {
-      background: #fff;
-      padding: 8px 12px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      cursor: pointer;
-    }
-
-    #pesquisa {
-      width: 240px;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      display: block;
-      margin: 0 auto 20px auto;
-    }
-
-    #container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 20px;
-      padding: 20px;
-    }
-
-    .questao {
-      background: #fff;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .questao img {
-      max-width: 100%;
-      border-radius: 8px;
-      margin: 10px 0;
-    }
-
-    .gabarito {
-      filter: blur(6px);
-      transition: filter 0.3s ease;
-      user-select: none;
-    }
-
-    .gabarito.mostrar {
-      filter: none;
-    }
-
-    .btn-gabarito {
-      margin-top: 8px;
-      padding: 6px 10px;
-      border: none;
-      border-radius: 6px;
-      background: #1976d2;
-      color: #fff;
-      cursor: pointer;
-    }
-
-    .btn-gabarito:hover {
-      background: #125aa0;
-    }
+    /* Estilo do Simulado */
+    .area-resposta { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; }
+    .input-resposta { width: 50px; padding: 5px; text-transform: uppercase; text-align: center; font-weight: bold; }
+    .resultado-final { text-align: center; background: #fff; margin: 20px; padding: 20px; border-radius: 12px; font-size: 1.2em; display: none; }
+    
+    .gabarito { filter: blur(6px); transition: filter 0.3s ease; user-select: none; }
+    .gabarito.mostrar { filter: none; }
+    .btn-gabarito, .btn-acao { margin-top: 8px; padding: 10px 20px; border: none; border-radius: 6px; background: #1976d2; color: #fff; cursor: pointer; }
+    .btn-acao { display: block; margin: 20px auto; font-size: 1.1em; }
+    .btn-gabarito:hover, .btn-acao:hover { background: #125aa0; }
   </style>
 </head>
 <body>
 
-<h1>Questões de Matemática – ENEM</h1>
-
-<input type="text" id="pesquisa" placeholder="Pesquisar: ex 2018 45 ou 2012">
-
-<div class="secao-filtros">
-  <h3>Filtrar por conteúdo</h3>
-  <div id="filtrosConteudo" class="filtros"></div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="mudarAba('estudo')">Estudo Livre</button>
+  <button class="tab-btn" onclick="mudarAba('simulado')">Simulado (10 questões)</button>
 </div>
 
-<div class="secao-filtros">
-  <h3>Filtrar por ano</h3>
-  <div id="filtrosAno" class="filtros"></div>
+<div id="aba-estudo" class="content-section active">
+  <h1>Questões de Matemática – ENEM</h1>
+  <input type="text" id="pesquisa" placeholder="Pesquisar: ex 2018 45 ou 2012">
+  <div class="secao-filtros">
+    <h3>Filtrar por conteúdo</h3>
+    <div id="filtrosConteudo" class="filtros"></div>
+  </div>
+  <div class="secao-filtros">
+    <h3>Filtrar por ano</h3>
+    <div id="filtrosAno" class="filtros"></div>
+  </div>
+  <div id="container"></div>
 </div>
 
-<hr>
-
-<div id="container"></div>
+<div id="aba-simulado" class="content-section">
+  <h1>Simulado Aleatório</h1>
+  <button class="btn-acao" onclick="gerarSimulado()">Gerar Novo Simulado de 10 Questões</button>
+  <div id="simulado-container"></div>
+  <div id="resultado" class="resultado-final"></div>
+  <button id="btn-corrigir" class="btn-acao" style="display:none;" onclick="corrigirSimulado()">Corrigir Simulado</button>
+</div>
 
 <script>
 let questoes = [];
-let termoPesquisa = "";
+let questoesSimulado = [];
 
-// =======================
-// CATEGORIA PRINCIPAL
-// =======================
 function categoriaPrincipal(texto) {
   texto = texto.toLowerCase();
-
   if (texto.includes("estatística")) return "Estatística";
   if (texto.includes("função afim") || texto.includes("1º grau")) return "Função Afim";
   if (texto.includes("função quadrática") || texto.includes("2º grau")) return "Função Quadrática";
@@ -129,32 +80,30 @@ function categoriaPrincipal(texto) {
   if (texto.includes("escala") || texto.includes("proporção")) return "Escala e Proporção";
   if (texto.includes("exponencial")) return "Função Exponencial";
   if (texto.includes("logarítmica")) return "Função Logarítmica";
-
   return "Outros";
 }
 
-// =======================
-// BUSCAR CSV
-// =======================
+function mudarAba(aba) {
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('aba-' + aba).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
 fetch("questoes.csv")
   .then(r => r.text())
   .then(csv => {
     const linhas = csv.trim().split("\n").slice(1);
-
     const filtrosConteudo = document.getElementById("filtrosConteudo");
     const filtrosAno = document.getElementById("filtrosAno");
-    const container = document.getElementById("container");
-
     const categorias = new Set();
     const anos = new Set();
 
     linhas.forEach(linha => {
       const [ano, num, conteudos, gabarito] = linha.split(";");
       if (!ano || !num) return;
-
       const categoria = categoriaPrincipal(conteudos);
-
-      questoes.push({ ano, num, conteudos, gabarito, categoria });
+      questoes.push({ ano, num, conteudos, gabarito: gabarito.trim().toUpperCase(), categoria });
       categorias.add(categoria);
       anos.add(ano);
     });
@@ -162,85 +111,38 @@ fetch("questoes.csv")
     [...categorias].sort().forEach(c => filtrosConteudo.appendChild(criarCheckbox(c)));
     [...anos].sort((a,b) => b - a).forEach(a => filtrosAno.appendChild(criarCheckbox(a)));
 
-    document.getElementById("pesquisa").addEventListener("input", e => {
-      termoPesquisa = e.target.value.toLowerCase();
-      aplicarFiltros();
-    });
-
-    renderizar(questoes);
-
-    function criarCheckbox(valor) {
-      const label = document.createElement("label");
-      label.className = "filtro";
-
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.value = valor;
-      cb.addEventListener("change", aplicarFiltros);
-
-      label.appendChild(cb);
-      label.appendChild(document.createTextNode(" " + valor));
-      return label;
-    }
-
-    function aplicarFiltros() {
-      const cSel = [...document.querySelectorAll("#filtrosConteudo input:checked")].map(x => x.value);
-      const aSel = [...document.querySelectorAll("#filtrosAno input:checked")].map(x => x.value);
-
-      const filtradas = questoes.filter(q =>
-        (cSel.length === 0 || cSel.includes(q.categoria)) &&
-        (aSel.length === 0 || aSel.includes(q.ano)) &&
-        (termoPesquisa === "" || (`${q.ano} ${q.num}`).toLowerCase().includes(termoPesquisa))
-      );
-
-      renderizar(filtradas);
-    }
-
-    function renderizar(lista) {
-      container.innerHTML = "";
-
-      if (!lista.length) {
-        container.innerHTML = "<p style='text-align:center'>Nada encontrado.</p>";
-        return;
-      }
-
-      lista.forEach(q => {
-        const idGab = `gab_${q.ano}_${q.num}`;
-
-        const div = document.createElement("div");
-        div.className = "questao";
-        div.innerHTML = `
-          <h3>${q.ano} – Questão ${q.num}</h3>
-
-          <img 
-            src="imagens/${q.ano}_q${q.num}.png"
-            onerror="this.onerror=null; this.src='imagens/${q.ano}_q${q.num}.PNG';">
-
-          <p><strong>Categoria:</strong> ${q.categoria}</p>
-
-          <p class="gabarito" id="${idGab}">
-            <strong>Gabarito:</strong> ${q.gabarito}
-          </p>
-
-          <button class="btn-gabarito"
-            onclick="mostrarGabarito('${idGab}', this)">
-            Mostrar gabarito
-          </button>
-        `;
-
-        container.appendChild(div);
-      });
-    }
+    document.getElementById("pesquisa").addEventListener("input", e => aplicarFiltros(e.target.value.toLowerCase()));
+    renderizar(questoes, document.getElementById("container"), true);
   });
 
-// =======================
-// MOSTRAR GABARITO
-// =======================
-function mostrarGabarito(id, botao) {
-  document.getElementById(id).classList.add("mostrar");
-  botao.style.display = "none";
+function criarCheckbox(valor) {
+  const label = document.createElement("label");
+  label.className = "filtro";
+  const cb = document.createElement("input");
+  cb.type = "checkbox";
+  cb.value = valor;
+  cb.addEventListener("change", () => aplicarFiltros(document.getElementById("pesquisa").value.toLowerCase()));
+  label.appendChild(cb);
+  label.appendChild(document.createTextNode(" " + valor));
+  return label;
 }
-</script>
 
-</body>
-</html>
+function aplicarFiltros(termo) {
+  const cSel = [...document.querySelectorAll("#filtrosConteudo input:checked")].map(x => x.value);
+  const aSel = [...document.querySelectorAll("#filtrosAno input:checked")].map(x => x.value);
+  const filtradas = questoes.filter(q =>
+    (cSel.length === 0 || cSel.includes(q.categoria)) &&
+    (aSel.length === 0 || aSel.includes(q.ano)) &&
+    (termo === "" || (`${q.ano} ${q.num}`).toLowerCase().includes(termo))
+  );
+  renderizar(filtradas, document.getElementById("container"), true);
+}
+
+function renderizar(lista, container, modoEstudo) {
+  container.innerHTML = "";
+  lista.forEach((q, index) => {
+    const div = document.createElement("div");
+    div.className = "questao";
+    div.innerHTML = `
+      <h3>${q.ano} – Questão ${q.num}</h3>
+      <p>
