@@ -2,11 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Questões ENEM Matemática</title>
+<title>Questões ENEM – Matemática</title>
 
 <style>
 body { font-family: Arial; background:#f4f6f8; margin:0; }
-
 h1,h3 { text-align:center; }
 
 .topo { text-align:center; padding:10px; }
@@ -89,7 +88,7 @@ td,th {
 <body>
 
 <h1>Questões ENEM – Matemática</h1>
-<h3> > By Andy and Bruno < </h3>
+<h1> V1.0 </h1>
 
 <div class="topo">
 <button id="btnSimulado">Simulado (10 aleatórias)</button>
@@ -152,8 +151,12 @@ fetch("questoes.csv")
  aplicarFiltros();
 });
 
+// =====================
+// CHECKBOXES
+// =====================
 function criarCheckboxes(id,lista){
  const box=document.getElementById(id);
+ box.innerHTML="";
  lista.forEach(v=>{
   const label=document.createElement("label");
   label.className="filtro";
@@ -179,20 +182,37 @@ function aplicarFiltros(){
  renderLista(lista);
 }
 
+// =====================
+// LISTA LEVE (limitada)
+// =====================
 function renderLista(lista){
  const c=document.getElementById("container");
  c.innerHTML="";
- if(!lista.length){ c.innerHTML="Nada encontrado"; return;}
 
- lista.forEach(q=>{
+ if(!lista.length){
+  c.innerHTML="Nada encontrado";
+  return;
+ }
+
+ const limite = 40;
+ const parte = lista.slice(0, limite);
+
+ parte.forEach(q=>{
   c.innerHTML+=`
   <div class="questao">
    <h3>${q.ano} – Questão ${q.num}</h3>
    <p><b>Tema:</b> ${q.categoria}</p>
-   <img src="imagens/${q.ano}_q${q.num}.png">
+   <img loading="lazy" decoding="async"
+        src="imagens/${q.ano}_q${q.num}.webp">
    <p><b>Gabarito:</b> ${q.gabarito}</p>
   </div>`;
  });
+
+ if(lista.length > limite){
+   c.innerHTML += `<p style="text-align:center">
+   Mostrando ${limite} de ${lista.length}
+   </p>`;
+ }
 }
 
 // =====================
@@ -214,7 +234,10 @@ function mostrarQuestaoSimulado(){
   <h3>Questão ${indiceAtual+1} de 10</h3>
   <p><b>${q.ano} – Questão ${q.num}</b></p>
   <p><b>Tema:</b> ${q.categoria}</p>
-  <img src="imagens/${q.ano}_q${q.num}.png">
+
+  <img loading="lazy" decoding="async"
+       src="imagens/${q.ano}_q${q.num}.webp">
+
   ${["A","B","C","D","E"].map(l=>
     `<button onclick="responder('${l}')">${l}</button>`
   ).join("")}
@@ -235,7 +258,7 @@ function responder(letra){
 }
 
 // =====================
-// RESULTADO + TABELA
+// RESULTADO
 // =====================
 function telaResultado(){
  const c=document.getElementById("container");
@@ -243,7 +266,7 @@ function telaResultado(){
 
  c.innerHTML=`<h3>Resultado: ${acertos} / 10</h3>
  <table>
- <tr><th>Questão</th><th>Tema</th><th>Sua resp</th><th>Certa</th><th></th></tr>
+ <tr><th>Questão</th><th>Tema</th><th>Sua</th><th>Certa</th><th></th></tr>
  ${respostasSimulado.map((r,i)=>`
   <tr class="${r.correto?'acerto':'erro'}">
    <td>${r.ano}-${r.num}</td>
@@ -258,11 +281,15 @@ function telaResultado(){
 function verQuestao(i){
  const q=respostasSimulado[i];
  const c=document.getElementById("container");
+
  c.innerHTML=`
  <div class="questao">
   <h3>${q.ano} – Questão ${q.num}</h3>
   <p><b>Tema:</b> ${q.categoria}</p>
-  <img src="imagens/${q.ano}_q${q.num}.png">
+
+  <img loading="lazy" decoding="async"
+       src="imagens/${q.ano}_q${q.num}.webp">
+
   <p>Sua resposta: ${q.resposta}</p>
   <p>Correta: ${q.gabarito}</p>
  </div>`;
