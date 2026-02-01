@@ -4,94 +4,53 @@
   <meta charset="UTF-8">
   <title>Questões ENEM Matemática</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding-bottom: 50px; }
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
     h1, h3 { text-align: center; }
 
-    /* Estilo das Abas */
-    .tabs { display: flex; justify-content: center; background: #1976d2; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-    .tab-btn { padding: 15px 25px; cursor: pointer; border: none; background: none; color: white; font-weight: bold; font-size: 16px; outline: none; }
-    .tab-btn:hover { background: #125aa0; }
-    .tab-btn.active { background: #0d47a1; border-bottom: 4px solid #fff; }
-
-    .content-section { display: none; padding: 20px; }
-    .content-section.active { display: block; }
-
-    .secao-filtros { margin: 20px; background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    .filtros { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-    .filtro { background: #f0f2f5; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; font-size: 14px; }
+    /* Filtros */
+    .secao-filtros { margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .filtros { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .filtro { background: #f0f2f5; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; font-size: 14px; display: flex; align-items: center; }
     
-    #pesquisa { width: 90%; max-width: 400px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; display: block; margin: 0 auto 20px auto; }
-    #container, #simulado-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    #pesquisa { width: 100%; max-width: 400px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; display: block; margin: 0 auto 20px auto; }
+    
+    /* Grid de Questões */
+    #container { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
 
-    .questao { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
-    .questao img { max-width: 100%; border-radius: 8px; margin: 10px 0; align-self: center; }
+    .questao { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .questao img { max-width: 100%; border-radius: 8px; margin: 10px 0; display: block; }
 
     .gabarito { filter: blur(6px); transition: filter 0.3s ease; user-select: none; margin: 10px 0; background: #f9f9f9; padding: 5px; border-radius: 4px; }
     .gabarito.mostrar { filter: none; }
     
-    .area-resposta { margin-top: auto; padding-top: 15px; border-top: 1px dashed #ccc; text-align: center; }
-    .input-resposta { width: 60px; padding: 8px; text-transform: uppercase; text-align: center; font-weight: bold; border: 2px solid #1976d2; border-radius: 4px; }
-    
-    .btn-acao, .btn-gabarito { padding: 10px 20px; border: none; border-radius: 6px; background: #1976d2; color: #fff; cursor: pointer; font-weight: bold; margin-top: 10px; }
-    .btn-acao:hover { background: #125aa0; }
-    
-    .resultado-final { text-align: center; background: #e3f2fd; margin: 20px auto; padding: 20px; border-radius: 12px; font-size: 1.3em; display: none; max-width: 600px; border: 2px solid #1976d2; }
+    .btn-gabarito { padding: 8px 15px; border: none; border-radius: 6px; background: #1976d2; color: #fff; cursor: pointer; font-weight: bold; }
+    .btn-gabarito:hover { background: #125aa0; }
   </style>
 </head>
 <body>
 
-<div class="tabs">
-  <button class="tab-btn active" data-aba="estudo">Estudo Livre</button>
-  <button class="tab-btn" data-aba="simulado">Simulado (10 questões)</button>
+<h1>Questões de Matemática – ENEM</h1>
+
+<input type="text" id="pesquisa" placeholder="Pesquisar (ex: 2022 140)">
+
+<div class="secao-filtros">
+  <h3>Filtrar por conteúdo</h3>
+  <div id="filtrosConteudo" class="filtros"></div>
 </div>
 
-<div id="aba-estudo" class="content-section active">
-  <h1>Questões de Matemática – ENEM</h1>
-  <input type="text" id="pesquisa" placeholder="Pesquisar por ano ou número (ex: 2022 140)">
-  
-  <div class="secao-filtros">
-    <h3>Filtrar por conteúdo</h3>
-    <div id="filtrosConteudo" class="filtros"></div>
-  </div>
-
-  <div class="secao-filtros">
-    <h3>Filtrar por ano</h3>
-    <div id="filtrosAno" class="filtros"></div>
-  </div>
-
-  <div id="container"></div>
+<div class="secao-filtros">
+  <h3>Filtrar por ano</h3>
+  <div id="filtrosAno" class="filtros"></div>
 </div>
 
-<div id="aba-simulado" class="content-section">
-  <h1>Simulado Aleatório</h1>
-  <p style="text-align: center;">Escolheremos 10 questões aleatórias para você responder.</p>
-  <button class="btn-acao" style="display: block; margin: 0 auto;" onclick="gerarSimulado()">Gerar Novo Simulado</button>
-  
-  <div id="simulado-container"></div>
-  
-  <div id="resultado" class="resultado-final"></div>
-  <button id="btn-corrigir" class="btn-acao" style="display:none; margin: 20px auto;" onclick="corrigirSimulado()">Corrigir Simulado</button>
-</div>
+<hr>
+
+<div id="container">Carregando questões...</div>
 
 <script>
 let todasQuestoes = [];
-let questoesSimulado = [];
 
-// 1. GERENCIAMENTO DE ABAS
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    // Remove active de tudo
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-    
-    // Ativa a clicada
-    btn.classList.add('active');
-    const abaId = 'aba-' + btn.getAttribute('data-aba');
-    document.getElementById(abaId).classList.add('active');
-  });
-});
-
-// 2. LÓGICA DE CATEGORIAS
+// Função de Categorização
 function categoriaPrincipal(texto) {
   if (!texto) return "Outros";
   texto = texto.toLowerCase();
@@ -108,45 +67,48 @@ function categoriaPrincipal(texto) {
   return "Outros";
 }
 
-// 3. CARREGAR DADOS
+// Carregar CSV
 fetch("questoes.csv")
-  .then(r => r.text())
-  .then(csv => {
-    const linhas = csv.trim().split("\n").slice(1);
-    const categorias = new Set();
-    const anos = new Set();
+  .then(response => response.text())
+  .then(data => {
+    const linhas = data.trim().split("\n").slice(1);
+    const catSet = new Set();
+    const anoSet = new Set();
 
-    linhas.forEach(linha => {
-      const colunas = linha.split(";");
-      if (colunas.length < 4) return;
+    todasQuestoes = linhas.map(linha => {
+      const col = linha.split(";");
+      if (col.length < 4) return null;
       
       const q = {
-        ano: colunas[0].trim(),
-        num: colunas[1].trim(),
-        conteudos: colunas[2].trim(),
-        gabarito: colunas[3].trim().toUpperCase(),
-        categoria: categoriaPrincipal(colunas[2])
+        ano: col[0].trim(),
+        num: col[1].trim(),
+        conteudos: col[2].trim(),
+        gabarito: col[3].trim().toUpperCase(),
+        categoria: categoriaPrincipal(col[2])
       };
+      
+      catSet.add(q.categoria);
+      anoSet.add(q.ano);
+      return q;
+    }).filter(q => q !== null);
 
-      todasQuestoes.push(q);
-      categorias.add(q.categoria);
-      anos.add(q.ano);
-    });
-
-    // Criar filtros na tela
+    // Gerar Checkboxes de Filtro
     const fConteudo = document.getElementById("filtrosConteudo");
     const fAno = document.getElementById("filtrosAno");
 
-    [...categorias].sort().forEach(c => fConteudo.appendChild(criarCheckbox(c, 'categoria')));
-    [...anos].sort((a,b) => b - a).forEach(a => fAno.appendChild(criarCheckbox(a, 'ano')));
+    [...catSet].sort().forEach(cat => fConteudo.appendChild(criarCheckbox(cat, 'categoria')));
+    [...anoSet].sort((a,b) => b - a).forEach(ano => fAno.appendChild(criarCheckbox(ano, 'ano')));
 
-    // Evento de pesquisa
+    // Ativar Pesquisa
     document.getElementById("pesquisa").addEventListener("input", aplicarFiltros);
 
-    // Renderiza a lista inicial
-    renderizarEstudo(todasQuestoes);
+    // Renderização Inicial
+    renderizar(todasQuestoes);
   })
-  .catch(err => console.error("Erro ao carregar CSV:", err));
+  .catch(err => {
+    document.getElementById("container").innerHTML = "Erro ao carregar arquivo CSV.";
+    console.error(err);
+  });
 
 function criarCheckbox(valor, tipo) {
   const label = document.createElement("label");
@@ -154,7 +116,7 @@ function criarCheckbox(valor, tipo) {
   const cb = document.createElement("input");
   cb.type = "checkbox";
   cb.value = valor;
-  cb.dataset.tipo = tipo;
+  cb.className = "filtro-check";
   cb.addEventListener("change", aplicarFiltros);
   label.appendChild(cb);
   label.appendChild(document.createTextNode(" " + valor));
@@ -163,93 +125,43 @@ function criarCheckbox(valor, tipo) {
 
 function aplicarFiltros() {
   const termo = document.getElementById("pesquisa").value.toLowerCase();
-  const cSel = [...document.querySelectorAll("input[data-tipo='categoria']:checked")].map(x => x.value);
-  const aSel = [...document.querySelectorAll("input[data-tipo='ano']:checked")].map(x => x.value);
+  
+  // Captura quais categorias estão marcadas
+  const catsMarcadas = [...document.querySelectorAll("#filtrosConteudo input:checked")].map(i => i.value);
+  const anosMarcados = [...document.querySelectorAll("#filtrosAno input:checked")].map(i => i.value);
 
-  const filtradas = todasQuestoes.filter(q =>
-    (cSel.length === 0 || cSel.includes(q.categoria)) &&
-    (aSel.length === 0 || aSel.includes(q.ano)) &&
-    (termo === "" || (`${q.ano} ${q.num}`).toLowerCase().includes(termo))
-  );
+  const filtradas = todasQuestoes.filter(q => {
+    const matchTermo = (q.ano + " " + q.num).toLowerCase().includes(termo);
+    const matchCat = catsMarcadas.length === 0 || catsMarcadas.includes(q.categoria);
+    const matchAno = anosMarcados.length === 0 || anosMarcados.includes(q.ano);
+    return matchTermo && matchCat && matchAno;
+  });
 
-  renderizarEstudo(filtradas);
+  renderizar(filtradas);
 }
 
-function renderizarEstudo(lista) {
+function renderizar(lista) {
   const container = document.getElementById("container");
   container.innerHTML = "";
   
+  if (lista.length === 0) {
+    container.innerHTML = "<p>Nenhuma questão encontrada.</p>";
+    return;
+  }
+
   lista.forEach((q, i) => {
-    const div = document.createElement("div");
-    div.className = "questao";
-    div.innerHTML = `
+    const item = document.createElement("div");
+    item.className = "questao";
+    item.innerHTML = `
       <h3>${q.ano} – Questão ${q.num}</h3>
       <p><strong>Tipo:</strong> ${q.categoria}</p>
       <img src="imagens/${q.ano}_q${q.num}.png" onerror="this.onerror=null; this.src='imagens/${q.ano}_q${q.num}.PNG';">
-      <p class="gabarito" id="gab_estudo_${i}"><strong>Gabarito:</strong> ${q.gabarito}</p>
-      <button class="btn-gabarito" onclick="document.getElementById('gab_estudo_${i}').classList.add('mostrar'); this.style.display='none'">Mostrar gabarito</button>
+      <p class="gabarito" id="gab_${i}"><strong>Gabarito:</strong> ${q.gabarito}</p>
+      <button class="btn-gabarito" onclick="document.getElementById('gab_${i}').classList.add('mostrar'); this.style.display='none'">Mostrar Gabarito</button>
     `;
-    container.appendChild(div);
+    container.appendChild(item);
   });
-}
-
-// 4. LÓGICA DO SIMULADO
-function gerarSimulado() {
-  if (todasQuestoes.length < 1) {
-    alert("Dados ainda carregando ou CSV vazio!");
-    return;
-  }
-  
-  document.getElementById("resultado").style.display = "none";
-  questoesSimulado = [...todasQuestoes].sort(() => 0.5 - Math.random()).slice(0, 10);
-  
-  const container = document.getElementById("simulado-container");
-  container.innerHTML = "";
-  
-  questoesSimulado.forEach((q, i) => {
-    const div = document.createElement("div");
-    div.className = "questao";
-    div.innerHTML = `
-      <h3>Questão ${i+1} (${q.ano})</h3>
-      <p><strong>Tipo:</strong> ${q.categoria}</p>
-      <img src="imagens/${q.ano}_q${q.num}.png" onerror="this.onerror=null; this.src='imagens/${q.ano}_q${q.num}.PNG';">
-      <div class="area-resposta">
-        <label>Sua resposta: </label>
-        <input type="text" maxlength="1" class="input-resposta" id="resp_simu_${i}">
-        <div id="fb_simu_${i}" style="margin-top:10px; font-weight:bold;"></div>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-
-  document.getElementById("btn-corrigir").style.display = "block";
-  window.scrollTo(0, 0);
-}
-
-function corrigirSimulado() {
-  let acertos = 0;
-  questoesSimulado.forEach((q, i) => {
-    const input = document.getElementById(`resp_simu_${i}`);
-    const feedback = document.getElementById(`fb_simu_${i}`);
-    const resUser = input.value.toUpperCase().trim();
-    
-    if (resUser === q.gabarito) {
-      acertos++;
-      feedback.innerHTML = "✅ Correto!";
-      feedback.style.color = "green";
-    } else {
-      feedback.innerHTML = `❌ Errado! Gabarito: ${q.gabarito}`;
-      feedback.style.color = "red";
-    }
-    input.disabled = true;
-  });
-
-  const resDiv = document.getElementById("resultado");
-  resDiv.style.display = "block";
-  resDiv.innerHTML = `<strong>Fim!</strong> Você acertou ${acertos} de 10 questões.`;
-  document.getElementById("btn-corrigir").style.display = "none";
 }
 </script>
-
 </body>
 </html>
